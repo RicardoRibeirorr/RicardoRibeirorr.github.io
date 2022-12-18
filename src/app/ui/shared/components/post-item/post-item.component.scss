@@ -1,0 +1,15 @@
+// Items
+.share-btns{
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: end;
+  padding: 10px;
+  z-index: 1;
+
+  .btn{
+    padding: 5px 10px;
+    font-size: 1.2rem;
+  }
+}

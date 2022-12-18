@@ -1,0 +1,143 @@
+  <!--Main layout-->
+  <main class="mt-4 mb-5">
+    <div class="container" *ngIf="post; else loaderTemplate">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">{{post.author?.name}}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{post.title}}</li>
+        </ol>
+      </nav>
+
+      <!--Grid row-->
+      <div class="row">
+        <!--Grid column-->
+        <article class="col-md-8 mb-4">
+          <!--Section: Post data-mdb-->
+          <div class="border-bottom my-4">
+            <h1 class="mb-4 text-dark">{{post.title}}</h1>
+            <img src="{{post.imageUrl}}" class="img-fluid shadow-2-strong rounded-5 mb-4" alt="" />
+
+            <div class="row align-items-center mb-4">
+              <div class="col-lg-6 text-muted small text-center text-lg-start mb-3 m-lg-0">
+                <span> Published <u>{{post.dateTime}}</u> by </span>
+                <a href="" class="text-dark">{{post.author?.name}}</a>
+              </div>
+
+              <div class="col-lg-6 text-center text-lg-end">
+                <a target="_blank" class="btn btn-sm btn-dark px-3 me-1"
+                  href="https://www.linkedin.com/shareArticle?mini=true&url=ricardoribeirorr.github.io/post/{{post.id}}&title={{post.title}}&summary={{post.description}}"><i
+                    class="fab fa-linkedin"></i></a>
+                <a target="_blank" class="btn btn-sm btn-primary px-3 me-1" style="background-color: #55acee;"
+                  href="http://twitter.com/share?text={{post.title}}&url=ricardoribeirorr.github.io/post/{{post.id}}"><i
+                    class="fab fa-twitter"></i></a>
+                <a target="_blank" class="btn btn-sm btn-primary px-3 me-1" style="background-color: #3b5998;"
+                  href="http://www.facebook.com/sharer.php?u=ricardoribeirorr.github.io/post/{{post.id}}&p[title]={{post.title}}"><i
+                    class="fab fa-facebook-f"></i></a>
+                <a target="_blank" class="btn btn-sm btn-danger px-3 me-1"
+                  href="http://pinterest.com/pin/create/button/?url=ricardoribeirorr.github.io/post/{{post.id}}&description={{post.title}}"><i
+                    class="fab fa-pinterest"></i></a>
+                <a target="_blank" class="btn btn-sm btn-info px-3 me-1"
+                  href="https://telegram.me/share/url?url=ricardoribeirorr.github.io/post/{{post.id}}"><i
+                    class="fab fa-telegram"></i></a>
+              </div>
+            </div>
+          </div>
+          <!--Section: Post data-mdb-->
+
+          <!--Section: Text-->
+          <section class="content-post mb-6">
+            <div [innerHTML]="post.content"></div>
+          </section>
+          <!--Section: Text-->
+
+          <!--Section: Share buttons-->
+          <section class="text-center border-top border-bottom py-4 mb-4">
+            <p><strong>Share with your friends:</strong></p>
+            <a target="_blank" class="btn btn-dark px-3 me-1"
+              href="https://www.linkedin.com/sharing/share-offsite/?url=ricardoribeirorr.github.io/post/{{post.id}}"><i
+                class="fab fa-linkedin"></i></a>
+            <a target="_blank" class="btn btn-primary px-3 me-1" style="background-color: #55acee;"
+              href="http://twitter.com/share?text={{post.title}}&url=ricardoribeirorr.github.io/post/{{post.id}}"><i
+                class="fab fa-twitter"></i></a>
+            <a target="_blank" class="btn btn-primary px-3 me-1" style="background-color: #3b5998;"
+              href="http://www.facebook.com/sharer.php?u=ricardoribeirorr.github.io/post/{{post.id}}&ptitle={{post.title}}"><i
+                class="fab fa-facebook-f"></i></a>
+            <a target="_blank" class="btn btn-danger px-3 me-1"
+              href="http://pinterest.com/pin/create/button/?url=ricardoribeirorr.github.io/post/{{post.id}}&description={{post.title}}"><i
+                class="fab fa-pinterest"></i></a>
+            <a target="_blank" class="btn btn-info px-3 me-1"
+              href="https://telegram.me/share/url?url=ricardoribeirorr.github.io/post/{{post.id}}"><i
+                class="fab fa-telegram"></i></a>
+          </section>
+          <!--Section: Share buttons-->
+
+          <!--Section: Author-->
+          <section class="border-bottom mb-4 pb-4">
+            <div class="row">
+              <div class="col-3">
+                <img src="{{post.author?.image}}" class="img-fluid shadow-1-strong rounded-5" alt="" />
+              </div>
+              <div class="col-9">
+                <p class="mb-2"><strong>{{post.author?.name}}</strong></p>
+                <a target="_blank" *ngIf="post.author?.twitterURL" href="{{post.author?.twitterURL}}" class="text-dark"><i
+                    class="fab fa-twitter me-2"></i></a>
+                <a target="_blank" *ngIf="post.author?.githubURL" href="{{post.author?.githubURL}}" class="text-dark"><i
+                    class="fab fa-github me-2"></i></a>
+                <a target="_blank" *ngIf="post.author?.linkedInURL" href="{{post.author?.linkedInURL}}" class="text-dark"><i
+                    class="fab fa-linkedin me-2"></i></a>
+                <a target="_blank" *ngIf="post.author?.instagramURL" href="{{post.author?.instagramURL}}" class="text-dark"><i
+                    class="fab fa-instagram me-2"></i></a>
+                <p>{{post.author?.description}}</p>
+              </div>
+            </div>
+          </section>
+          <!--Section: Author-->
+
+        </article>
+        <!--Grid column-->
+
+        <!--Grid column-->
+        <div class="col-md-4 mb-4 px-4">
+          <div *ngIf="posts.length > 0; else noPostsRecords">
+            <a class="btn border btn-block mb-4" href="/" role="button">See All</a>
+            <ul class="list-unstyled">
+              <li class="mb-4" *ngFor="let similarPost of posts">
+                <app-post-item [post]="similarPost"></app-post-item>
+              </li>
+            </ul>
+          </div>
+          <ng-template #noPostsRecords>
+            <p class="h2 text-center text-lighter">No Other Posts Found</p>
+          </ng-template>
+        </div>
+        <!--Grid column-->
+      </div>
+      <!--Grid row-->
+    </div>
+
+    <ng-template #loaderTemplate>
+      <div class="container">
+        <!--Grid row-->
+        <div class="row">
+          <!--Grid column-->
+          <div class="col-md-8 mb-4">
+            <div class="image animated-background border" style="width:100%; height:400px;"></div>
+            <div class="title-line animated-background mt-4"></div>
+            <div style="width: 100%; max-width: 400px;">
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+              <div class="text-line animated-background"></div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-4">
+            <div class="image animated-background border" style="width:100%; height:400px;"></div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </main>
+  <!--Main layout-->

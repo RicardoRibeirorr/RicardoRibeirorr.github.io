@@ -1,0 +1,46 @@
+<!--Main layout-->
+<main>
+  <section>
+    <div class="jumbotron jumbotron-fluid vertical-center">
+      <div class="container">
+        <div class="jumbotron-text-container text-center">
+
+          <h1 class="display-5 fw-bold lh-1 ls-tight mb-6">
+            &#60;Fullstack/&#62; <br />
+            <span class="display-1 fw-bold text-secondary">RICARDO RIBEIRO</span>
+          </h1>
+          <p class="lead fw-normal text-muted">Creating Digital Experiences: Design, Development & Beyond! <br> <small
+              class="text-muted">- Developed by <b>Ricardo Ribeiro</b></small></p>
+          <a href="" type="button" class="btn btn-outline-secondary text-secondary ms-2"
+            data-ripple-color="secondary"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="" type="button" class="btn btn-outline-secondary text-secondary ms-2"
+            data-ripple-color="secondary"><i class="fa-brands fa-github"></i></a>
+          <a href="" type="button" class="btn btn-outline-secondary text-secondary ms-2"
+            data-ripple-color="secondary"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-4">
+    <div class="container">
+      <!-- <h2 class="h6 text-lighter mb-3"><small>COMPANIES I'VE WORKED WITH</small></h2> -->
+      <div class="d-flex justify-content-between brands-center">
+        <img src="../../../assets/img/system/brands/ibm.png" alt="">
+        <img src="../../../assets/img/system/brands/rtp.png" alt="">
+        <img src="../../../assets/img/system/brands/mitsubishi.png" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="py-4" style="margin-top: 5rem;">
+    <div class="container-fluid" style="max-width: 1170px;">
+      <h2 class="display-4 fw-bold text-lighter mb-5 text-center">&#60;Content/&#62;</h2>
+
+      <div class="row">
+        <div *ngFor="let post of posts" class="col-xs-12 col-sm-6 col-lg-4 mb-4"><app-post-item [post]="post"></app-post-item></div>
+      </div>
+    </div>
+  </section>
+</main>
+<!--Main layout-->

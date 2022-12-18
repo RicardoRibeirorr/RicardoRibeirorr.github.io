@@ -1,0 +1,40 @@
+.jumbotron{
+  background-image: url(../../../../assets/img/system/slider_3.jpg);
+  background-size: contain;
+  background-color: black;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: calc(100vh - 3rem);
+}
+
+@media (max-width: 800px){
+  .jumbotron {
+      height: auto!important;
+      min-height: 400px;
+  }
+}
+
+main{    margin-top: 3rem!important;}
+.vertical-center {
+
+  display: flex;
+  align-items: center;
+}
+
+.content-post * {
+  color: rgb(27, 27, 27);
+}
+.content-post{
+  h1 {
+    text-shadow: 4px 4px 6px #bdbdbd;
+  }
+}
+
+
+
+ pre:first-of-type {
+  margin-top: 3.2rem;
+  padding-top: 3.2rem;
+}
+
+

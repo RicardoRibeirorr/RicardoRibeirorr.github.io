@@ -1,0 +1,37 @@
+<div class="position-relative zoom-anim  m-2">
+  <div class="card position-relative">
+    <div style="overflow: hidden; height: 150px;"><img style="min-height: 100%;" class="card-img-top"
+        src="{{post.image}}" alt="">
+    </div>
+    <div class="card-body">
+      <h4 class="h5 card-title text-dark mb-3 ellipsosis-second">{{post.title}}</h4>
+      <p class="small card-text text-muted ellipsosis-second">{{post.description}}</p>
+    </div>
+    <a href="/post/{{post.id}}" class="stretched-link"></a>
+  </div>
+
+  <div class="share-btns">
+    <div class="dropdown">
+      <a class="btn btn-link" href="#" role="button" id="dropdownMenuLink" data-mdb-toggle="dropdown"
+        aria-expanded="false">
+        <i class="fa-solid fa-share-nodes"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        <li><a class="dropdown-item"
+            href="https://www.linkedin.com/shareArticle?mini=true&url=ricardoribeirorr.github.io/post/{{post.id}}&title={{post.title}}&summary={{post.description}}">Linkedin</a>
+        </li>
+        <li><a class="dropdown-item"
+            href="http://twitter.com/share?text={{post.title}}&url=ricardoribeirorr.github.io/post/{{post.id}}">Twitter</a>
+        </li>
+        <li><a class="dropdown-item"
+            href="http://www.facebook.com/sharer.php?u=ricardoribeirorr.github.io/post/{{post.id}}&p[title]={{post.title}}">Facebook</a>
+        </li>
+        <li><a class="dropdown-item"
+            href="http://pinterest.com/pin/create/button/?url=ricardoribeirorr.github.io/post/{{post.id}}&description={{post.title}}">Pinterest</a>
+        </li>
+        <li><a class="dropdown-item"
+            href="https://telegram.me/share/url?url=ricardoribeirorr.github.io/post/{{post.id}}">Telegram</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
