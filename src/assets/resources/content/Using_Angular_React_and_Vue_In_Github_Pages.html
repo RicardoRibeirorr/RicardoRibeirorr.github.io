@@ -1,0 +1,76 @@
+<h1>Using Angular, React, Vue in Github Pages</h1>
+<p>GitHub Pages is a great service for hosting static sites, like a personal portfolio, blog, or project documentation.
+  Even modern web apps are often just static HTML and Javascript. However, static sites don't allow for dynamic routes,
+  such as a blog post with a dynamic parameter. All of the routes must be known in advance and point to a static file.
+  To add new content, you have to re-deploy the page. </p>
+  <p>With CI/CD pipelines like GitHub Actions/Workflows, this is a
+    simple process of pushing a new markdown file to your repository. But situations call for dynamic paths when
+    user-generated content and complex projects are involved.</p>
+    <p>My Gihut website works this way, go ahead and check it's open source code in this <a target="_blank" href="https://github.com/RicardoRibeirorr/RicardoRibeirorr.github.io">Github Repository</a></p>
+
+<h2>What is a Hash for Dynamic Routes in Web Development?</h2>
+<p>Dynamic routes are an important aspect of web development, and they have become increasingly popular in modern
+  frameworks. Hash routing is a method used to create dynamic routes and is commonly used in frameworks such as Angular
+  and React. In this blog post, we'll dive into what a hash for dynamic routes is, how to implement it in Angular and
+  React, and the advantages of using this technique.</p>
+
+<h2>What is a Hash for Dynamic Routes?</h2>
+<p>A hash for dynamic routes is essentially a unique identifier for the current route that a user is on. It is created
+  by appending a “#” symbol to the end of the URL. This is used to create dynamic routes that can be changed without the
+  need for a full page reload. The hash is also a useful way to keep track of the user’s current route, as it can easily
+  be shared or bookmarked.</p>
+
+
+<h2>Advantages of Using a Hash for Dynamic Routes</h2>
+<p>Using a hash for dynamic routes can be beneficial in a number of ways. By using hashes, you can create single-page
+  applications that are more intuitive and user-friendly. Additionally, dynamic routes can be shared more easily as the
+  hash is included in the URL, allowing users to bookmark or link to specific routes. It allows you to implement new
+  school frameworks into an old server or even GitHub Pages. Finally, hashes can help improve the performance of an
+  application by reducing the need for full-page reloads.</p>
+
+<h2>How do dynamic routes even work?</h2>
+<em>If you are knowledgeable about the concept and would like to learn how to configure GitHub Pages to support dynamic
+  routes, you can skip ahead to The Solution.</em>
+<p>A route/path is traditionally pointing to a (static) file on the server that is represented by a domain.</p>
+<pre>your-server.com/some/path/index.html</pre>
+<p>If the file you are attempting to access is not present on the server, you may receive an error message. This
+  typically results in the server serving a default 404.html page. This is likely what you have seen before:</p>
+<img src="https://miro.medium.com/max/720/1*uHzQ7dEcuM6ZT6q-Y6NkJA.webp" alt="404 page not found print">
+
+
+<h2>GitHub Pages</h2>
+<p>GitHub Pages does not support a front controller because it is not designed to serve dynamic content. However, you
+  can still use JavaScript in your static HTML files to dynamically change its content based on user interactions. This
+  is how most web apps work – they are nothing more than a static HTML file, and then JavaScript takes over. All of this
+  happens in the browser, and not on GitHub's servers. So, if you try to access a file (e.g.
+  your-username.github.io/some/file.html) that does not exist in your repository, you will get an error.</p>
+<img src="https://miro.medium.com/max/720/1*_9itSEsxjJQa-IefAV-Jeg.webp" alt="">
+<p>Most developers/users accept that GitHub Pages might not be the right service for them and move on to a more
+  comprehensive hosting solution with more control. However, I'm a lazy minimalist and want to use just one platform
+  account! Despite GitHub's default 404.html file, I'm determined to make it work!</p>
+
+<h3>An old-fashioned alternative</h3>
+<p>I initially thought I would settle for a compromise and use the # method, like the old AngularJS did, rather than
+  having "real" dynamic routes. The # in the URL is not sent to the server and instead is used by the browser to jump to
+  an HTML anchor. This means you can have routes that look like this:</p>
+<pre>your-server.com/#/posts/&lt;post-id&gt;</pre>
+
+<h2>How to Implement a Hash for Dynamic Routes in Angular and React</h2>
+<p>Implementing a hash for dynamic routes in Angular and React is fairly straightforward. For Angular, you'll need to
+  enable the <code>useHash</code> option in the <code>RouterModule</code> of your application. For React, you'll need to
+  install the <code>react-router-dom</code> package and use the <code>HashRouter</code> component. You can then start
+  creating dynamic routes using hashes in your application.</p>
+<p><b>Now your just have to</b> Include a hash (#) before your links and redirects, as necessary. Ex:</p>
+<pre>
+//After With hash '#'
+<a href="#/posts">Posts</a>
+<a href="#/posts/1">Posts 1</a>
+<a href="#/users/ricardo_ribeiro/profile">Posts 1</a>
+
+//Before No Hash
+<a href="/posts">Posts</a>
+<a href="/posts/1">Posts 1</a>
+<a href="/users/ricardo_ribeiro/profile">Posts 1</a>
+</pre>
+
+<small>Ensure to include a hash (#) symbol ONLY in you application routes, not the server request Url's.</small>
