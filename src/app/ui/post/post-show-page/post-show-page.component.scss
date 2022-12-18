@@ -20,13 +20,16 @@ main{    margin-top: 3rem!important;}
   display: flex;
   align-items: center;
 }
-
+h1 {
+  text-shadow: 4px 4px 6px #bdbdbd;
+}
 .content-post * {
   color: rgb(27, 27, 27);
 }
 .content-post{
-  h1 {
-    text-shadow: 4px 4px 6px #bdbdbd;
+
+  img{
+    max-width: 100%;
   }
 }
 
