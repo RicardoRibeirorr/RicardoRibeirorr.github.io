@@ -1,0 +1,43 @@
+<p>Data manipulation is a key part of working with any programming language. JavaScript has several built-in array functions that can help you transform your data quickly and efficiently. We'll take a look at five of the most powerful array functions -&nbsp;map(),&nbsp;filter(),&nbsp;forEach(),&nbsp;find(), and&nbsp;findIndex()&nbsp;- and see how they can help you work with data.</p><h2>Using the&nbsp;map()&nbsp;Method</h2><p>map()&nbsp;is a great tool for transforming one array into another. It takes each item in the array, passes it through a callback function, and pushes the result into a new array. For example, you might want to take an array of user names and turn them into an array of full names:</p><pre class="reader-text-block__code">let users = ['jane', 'john', 'dave'];
+
+  let fullNames = users.map(user =&gt; ${user.charAt(0).toUpperCase() + user.slice(1)} Doe);
+
+  console.log(fullNames);
+
+  // Output: ["Jane Doe", "John Doe", "Dave Doe"]</pre><p>Here, we're using&nbsp;map()&nbsp;to loop through our&nbsp;users&nbsp;array and create a new array of full names using the&nbsp;charAt()&nbsp;and&nbsp;slice()&nbsp;methods. For more information on&nbsp;map(), check out the&nbsp;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map">MDN Documentation</a>.</p><h2>Using the&nbsp;filter()&nbsp;Method</h2><p>The&nbsp;filter()&nbsp;method is useful for pulling out specific items from an array. It takes each item in the array, passes it through a callback function, and pushes it into a new array if it meets a certain criteria. For example, you might want to take an array of users and filter out all users older than 18:</p><pre class="reader-text-block__code">let users = [
+
+  {name: 'Jane', age: 21},
+
+  {name: 'John', age: 17},
+
+  {name: 'Dave', age: 25}
+
+  ];
+
+  let adultUsers = users.filter(user =&gt; user.age &gt;= 18);
+
+  console.log(adultUsers);
+
+  // Output: [{name: 'Jane', age: 21}, {name: 'Dave', age: 25}]</pre><p>Here, we're using&nbsp;filter()&nbsp;to loop through our&nbsp;users&nbsp;array and create a new array of users over 18. For more information on&nbsp;filter(), check out the&nbsp;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter">MDN Documentation</a>.</p><h2>Using the&nbsp;forEach()&nbsp;Method</h2><p>forEach()&nbsp;is a great tool for looping through an array and performing an action on each item. It takes each item in the array and passes it through a callback function. For example, you might want to take an array of user names and print them out to the console:</p><pre class="reader-text-block__code">let users = ['jane', 'john', 'dave'];
+
+  users.forEach(user =&gt; console.log(user));
+
+  // Output: 'jane', 'john', 'dave'</pre><p>Here, we're using&nbsp;forEach()&nbsp;to loop through our&nbsp;users&nbsp;array and print out each item. For more information on&nbsp;forEach(), check out the&nbsp;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">MDN Documentation</a>.</p><h2>Using the&nbsp;find()&nbsp;Method</h2><p>find()&nbsp;is a great tool for finding a single item in an array that meets certain criteria. It takes each item in the array, passes it through a callback function, and returns the first item that meets the criteria. For example, you might want to take an array of users and find the user with the specified ID:</p><pre class="reader-text-block__code">let users = [
+
+  {id: 1, name: 'Jane'},
+
+  {id: 2, name: 'John'},
+
+  {id: 3, name: 'Dave'}
+
+  ];
+
+  let user = users.find(user =&gt; user.id === 2);
+
+  console.log(user);
+
+  // Output: {id: 2, name: 'John'}</pre><p>Here, we're using&nbsp;find()&nbsp;to loop through our&nbsp;users&nbsp;array and return the user with an ID of 2. For more information on&nbsp;find(), check out the&nbsp;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects">Global Objects</a>.</p><h2>Using the&nbsp;findIndex()&nbsp;Method</h2><p>The&nbsp;findIndex()&nbsp;method can be used in JavaScript to locate a specific element in an array. This method takes a callback function that must return a boolean value - true if the element meets the criteria set in the callback, and false otherwise. The&nbsp;findIndex()&nbsp;method will return the index of the first element in the array that meets the criteria set in the callback, or -1 if no such element exists.</p><p>Let's say we have an array of numbers and we want to find the index of the first element which is greater than 10. We can use the&nbsp;findIndex()&nbsp;method to do this:</p><pre class="reader-text-block__code">const numbers = [1, 5, 10, 15, 20];
+
+  const index = numbers.findIndex(num =&gt; num &gt; 10);
+
+  console.log(index); // Outputs 3</pre><p>As we can see, the&nbsp;findIndex()&nbsp;method returns 3, which is the index of the first element in the array that is greater than 10 (15).</p><h2>Do you want more?</h2><p>Yes, there are more functions to learn that are as important as these ones. Check&nbsp;<strong>Part 2</strong>&nbsp;for more content.</p><p><br></p><h2>Conclusion</h2><p>In this post, we looked at a few of the most popular array functions in JavaScript. Each of these functions is powerful and can be used to easily and quickly manipulate data.</p>
