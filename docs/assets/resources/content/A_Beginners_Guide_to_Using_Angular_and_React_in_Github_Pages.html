@@ -1,4 +1,4 @@
-<h1>Using Angular, React, Vue in Github Pages</h1>
+<h1>A Beginner's Guide to Using Angular and React in Github Pages</h1>
 <p>GitHub Pages is a great service for hosting static sites, like a personal portfolio, blog, or project documentation.
   Even modern web apps are often just static HTML and Javascript. However, static sites don't allow for dynamic routes,
   such as a blog post with a dynamic parameter. All of the routes must be known in advance and point to a static file.
@@ -32,7 +32,7 @@
 <em>If you are knowledgeable about the concept and would like to learn how to configure GitHub Pages to support dynamic
   routes, you can skip ahead to The Solution.</em>
 <p>A route/path is traditionally pointing to a (static) file on the server that is represented by a domain.</p>
-<pre>your-server.com/some/path/index.html</pre>
+<pre><code>your-server.com/some/path/index.html</code></pre>
 <p>If the file you are attempting to access is not present on the server, you may receive an error message. This
   typically results in the server serving a default 404.html page. This is likely what you have seen before:</p>
 <img src="https://miro.medium.com/max/720/1*uHzQ7dEcuM6ZT6q-Y6NkJA.webp" alt="404 page not found print">
@@ -61,8 +61,7 @@
   install the <code>react-router-dom</code> package and use the <code>HashRouter</code> component. You can then start
   creating dynamic routes using hashes in your application.</p>
 <p><b>Now your just have to</b> Include a hash (#) before your links and redirects, as necessary. Ex:</p>
-<pre>
-//After With hash '#'
+<pre>//After With hash '#'
 <a href="#/posts">Posts</a>
 <a href="#/posts/1">Posts 1</a>
 <a href="#/users/ricardo_ribeiro/profile">Posts 1</a>
@@ -70,7 +69,9 @@
 //Before No Hash
 <a href="/posts">Posts</a>
 <a href="/posts/1">Posts 1</a>
-<a href="/users/ricardo_ribeiro/profile">Posts 1</a>
-</pre>
+<a href="/users/ricardo_ribeiro/profile">Posts 1</a></pre>
 
 <small>Ensure to include a hash (#) symbol ONLY in you application routes, not the server request Url's.</small>
+
+<h2>Conclusion</h2>
+<p>In conclusion, integrating Angular and React into Github Pages using hash for static pages is an effective way to create dynamic web applications. It is an accessible and powerful tool for developers of all levels, and provides a great foundation for creating complex and interactive websites. With the help of this guide, developers can now easily combine the two frameworks for an efficient, enjoyable development experience.</p>
