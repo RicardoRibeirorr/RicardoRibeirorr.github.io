@@ -22,7 +22,7 @@ import { SharedModule } from './ui/shared/shared.module';
     SharedModule,
     HttpClientModule
   ],
-  providers: [AuthorService, {provide:LocationStrategy, useClass:HashLocationStrategy}],
+  providers: [AuthorService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
