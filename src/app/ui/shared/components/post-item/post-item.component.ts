@@ -1,17 +1,21 @@
 import { Post } from './../../../../core/interfaces/post';
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-post-item',
   templateUrl: './post-item.component.html',
   styleUrls: ['./post-item.component.scss']
 })
-export class PostItemComponent implements OnInit {
+export class PostItemComponent implements AfterViewInit {
   @Input() post!:Post;
 
   constructor() { }
 
-  ngOnInit() {
+  ngAfterViewInit(): void {
+    let top = document.getElementById('top');
+    if (top !== null) {
+      top.scrollIntoView();
+      top = null;
+    }
   }
-
 }
