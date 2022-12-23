@@ -1,0 +1,61 @@
+<h1>Azure: Handling 404s For Routes</h1>
+
+<h2>Why And how?</h2>
+<p>In regular development, web.config files are not typically an important consideration for Angular web applications. However, once you deploy your application to a web server, re-routing issues may arise. To handle this, web config files need to be introduced with URL rewrite rules.</p> 
+<p>When deploying a build manually, web.config can be placed in any directory. But when deploying a solution to Azure, as part of an Azure pipeline, the <code>web.config</code> needs to be integrated into the build process. This can be achieved through a simple two-step process.</p>
+<p>The trick is to integrate the web.config file as part of the build process. This is a two-step process:</p>
+<ol>
+    <li>place the
+  web.config inside the 'src' folder</li> 
+  <li>and add the web config file location to the 'assets' array in the angular.json file.</li> 
+</ol> 
+
+<h2>Problems You May Be Facing Without web.config</h2>
+<p> I had faced some problems before, and let's not talk about my first app, the client said it was not working and I didn't know why.</p>
+<p>So without further ado, here's the list of problems you may be facing:</p>
+<ul>
+    <li>Route paths don't work on deploy, and return <code>404 not found</code></li>
+    <li>On refresh in deploy throws <code>404 not found</code></li>
+    <li>The root path works <code>www.myapp.com/</code> but when navigating it throws <code>404 not found</code></li>
+<li>You don't have a web.config file, but any connection if throwing <b>404</b> or message like <em>The resource you are looking for has been removed, had its name changed, or is temporarily unavailable.</em></li>
+</ul> 
+<p>There are way more, but if you found one of these and have no web.config file, then you should know you're in the right place.</p>
+
+
+<h2>Step 1 - Creating The Configuration File</h2>
+<p>First let go to you <code>projectname</code> folder, open the <code>src</code> folder and create a new file named <code>web.config</code>. At this point you should have an empty file in <code>projectname/src/web.config</code> that you can use to configure your Azure application / server configuration logic.</p>
+<p>Now let's fill the configuration file with some tags that the server can identify, for this, I will leave an example that works pretty much everywhere, but if you have any restrictions like authentification or some other factors, I advise you to check the <a href="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/web-config?view=aspnetcore-7.0">Official Microsoft Documentation</a> about web configuration.</p>
+<p>Base configuration:</p>
+<pre><code> &lt;configuration&gt;
+    &lt;system.webServer&gt;
+         &lt;rewrite&gt;
+            &lt;rules&gt;
+              &lt;rule name="AngularJS Routes" stopProcessing="true"&gt;
+                &lt;match url=".*" /&gt;
+                &lt;conditions logicalGrouping="MatchAll"&gt;
+                  &lt;add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /&gt;
+                  &lt;add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /&gt;
+                &lt;/conditions&gt;
+                &lt;action type="Rewrite" url="/" /&gt;
+              &lt;/rule&gt;
+            &lt;/rules&gt;
+          &lt;/rewrite&gt;
+          &lt;caching enabled="true" enableKernelCache="true"&gt;
+              &lt;profiles&gt;
+                  &lt;add extension=".js" policy="DisableCache" kernelCachePolicy="DisableCache" /&gt;
+              &lt;/profiles&gt;
+          &lt;/caching&gt;
+    &lt;/system.webServer&gt;
+&lt;/configuration&gt; </code></pre>
+
+<h2>Step 2 - Implementing Auto Build Configuration</h2>
+Now that you have your file done everything is set for your success, the only thing needed is to say to Angular that every time your application is deployed using for example <code>ng build</code>, you want to add this file and configuration to the <code>dist</code> folder.
+<p>So to do this, in your root <code>projectname</code> folder open file with name <code>angular.json</code>. Inside scroll all the way down to <code>assets</code> inside of the <code>build</code> section like <code>projects/client/build/options/assets</code>, and add a new line including your configuration file path, like so:<code>src/web.config</code>.</p>
+<img src="https://media.licdn.com/dms/image/C4D12AQFfdyK1VJMgfQ/article-inline_image-shrink_1000_1488/0/1608905261940?e=1677110400&v=beta&t=JMpTWvGrc154cZvNGJnODuYe9YXAnhuLgUFEHVRUW50">
+<p>Note: Make sure you are including this inside of the <em>build</em> section.</p>
+<p>After doing this, the web.config will be automatically part of the build process, so no extra steps are needed
+    when deploying via pipelines.</p>
+
+
+    <p>You can find more content like this in this&nbsp;<a href="https://github.com/RicardoRibeirorr">GitHub repo</a>,&nbsp;<a href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">Linkedin</a>, or&nbsp;<a href="https://ricardoribeirorr.github.io/">RicardoRibeiro.blog</a></p>
+    <p>Thanks 🙏 for reading this, and feel free to share this with your colleagues. If you have any question, I’d love to answer those 😊</p>

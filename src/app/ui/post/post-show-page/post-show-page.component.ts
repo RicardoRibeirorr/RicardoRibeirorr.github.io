@@ -1,7 +1,7 @@
 import { Author } from './../../../core/interfaces/author';
 import { Post } from 'src/app/core/interfaces/post';
 import { PostService } from './../../../core/services/post.service';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, OnChanges } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {PlatformLocation } from '@angular/common';
@@ -12,7 +12,7 @@ import {Title} from "@angular/platform-browser";
   templateUrl: './post-show-page.component.html',
   styleUrls: ['./post-show-page.component.scss']
 })
-export class PostShowPageComponent implements OnInit, OnDestroy {
+export class PostShowPageComponent implements OnInit, OnDestroy, OnChanges {
   post!:Post;
   author!:Author;
   posts:Array<Post>=[];
@@ -36,6 +36,29 @@ export class PostShowPageComponent implements OnInit, OnDestroy {
 
       this.postService.getPosts().subscribe(ps=>this.posts=ps.filter((p:Post)=>p.id !== params['id']).slice(0,3));
     });
+  }
+
+
+  ngOnChanges(): void {
+    // let top = document.getElementById('top');
+    // console.log(top)
+    // if (top !== null) {
+    //   top.scrollIntoView();
+    //   top = null;
+    // }
+    // let node = document.getElementById('top');
+    // console.log(node)
+    // if (node !== null) {
+    //   // scroll to your element
+    //   node.scrollIntoView(true);
+
+    //   // // now account for fixed header
+    //   // var scrolledY = window.scrollY;
+
+    //   // if(scrolledY){
+    //   //   window.scroll(0, scrolledY - yourHeight);
+    //   // }
+    // }
   }
 
   ngOnDestroy() {
