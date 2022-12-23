@@ -105,3 +105,16 @@ pre {
 .content-post *{
  max-width: 100%;
 }
+
+.content-post{
+  h2{
+    color: #1f1f1f;
+    font-weight: 700;
+    margin-top: 3rem;
+  }
+  h3{
+    color: #252525;
+    margin-top: 2rem;
+    font-size: calc(1.1rem + .6vw);
+  }
+}

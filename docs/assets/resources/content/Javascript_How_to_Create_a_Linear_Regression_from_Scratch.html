@@ -1,0 +1,356 @@
+<p>In this blog post, we'll explore the basics of linear regression and learn how to write a linear regression from
+  scratch in JavaScript. We'll also explore gradient descent and how to implement it in JavaScript, and learn how to
+  use linear regression in real-world applications. Finally, we'll discuss some tips and tricks for optimizing linear
+  regression in JavaScript.</p>
+<p>So let's start!</p>
+
+
+<h2>Understanding the Basics of Linear Regression</h2>
+<p>Linear regression is a statistical technique used to model the relationship between two or more variables. The most
+  common form of linear regression is a linear regression line, which is a line drawn through a scatterplot of data
+  points. It is used to predict values based on the linear relationship between the variables. In this section, we'll
+  discuss the basics of linear regression, including the types of linear regression, the assumptions, and the
+  mathematics behind it.</p>
+<p>Linear regression is a type of statistical model that is used to understand the relationship between two variables.
+  It is used to predict the value of a dependent variable (Y) based on the value of an independent variable (X).</p>
+<p>The basic equation of linear regression is Y = mX + b, where m is the slope of the line and b is the intercept. The
+  equation of the line can be used to predict the value of Y for any given value of X.</p>
+<p>Linear regression is used in a variety of applications, including forecasting, forecasting demand, price prediction,
+  and risk analysis. It can also be used to identify trends in data and to develop predictive models.</p>
+<p>Linear regression can be visualized as a line on a graph, as shown in the image below. The line shows the
+  relationship between two variables. The slope of the line indicates how much Y changes for every unit change in X.
+  The intercept is the Y-intercept, which is the value of Y when X is equal to zero.</p>
+<img src="https://pimages.toolbox.com/wp-content/uploads/2022/04/07040339/25-4.png">
+<p>Linear regression is used in many different fields, from economics to medicine. For example, in economics, linear
+  regression can be used to analyze the relationship between GDP and inflation. In medicine, it can be used to predict
+  the likelihood of a patient developing a particular disease.</p>
+<p>Linear regression is a powerful tool for understanding the relationship between two variables and can be used to
+  develop predictive models. It can be used to analyze the relationship between two variables and to identify trends
+  in data.</p>
+
+
+<h2>Writing a Linear Regression from Scratch in JavaScript</h2>
+<p>In this section, we'll explore how to write a linear regression from scratch in JavaScript. We'll look at the
+  mathematics of linear regression, discuss the code for implementing a linear regression.</p>
+
+
+<p>First let's create our base function/class:</p>
+<pre><code>function LinearRegression() {
+    //Store our data
+    this.data = [];
+
+    //Store our coefficients
+    this.coefficients = {
+        a: 0,
+        b: 0
+    };
+
+    //Store our mean values
+    this.means = {
+        x: 0,
+        y: 0
+    };
+}</code></pre>
+
+<p>Then we will create a function to add our data points</p>
+<pre>//Add data points
+LinearRegression.prototype.addData = function(x, y) {
+  //Add the data point to our array
+  this.data.push([x, y]);
+};</pre>
+
+<p>Now let's create a function to calculate the coefficients</p>
+<pre><code>//Calculate the coefficients
+LinearRegression.prototype.calculateCoefficients = function() {
+    //If there is no data, return
+    if (this.data.length == 0) return;
+
+    //Calculate the means
+    let sumX = 0;
+    let sumY = 0;
+
+    this.data.forEach(function(point) {
+        sumX += point[0];
+        sumY += point[1];
+    });
+
+    this.means.x = sumX / this.data.length;
+    this.means.y = sumY / this.data.length;
+
+    //Calculate the coefficients
+    let numerator = 0;
+    let denominator = 0;
+
+    this.data.forEach(function(point) {
+        numerator += (point[0] - this.means.x) * (point[1] - this.means.y);
+        denominator += Math.pow(point[0] - this.means.x, 2);
+    }, this);
+
+    this.coefficients.b = numerator / denominator;
+    this.coefficients.a = this.means.y - (this.coefficients.b * this.means.x);
+};</code></pre>
+
+<p>Next, we will create a function to predict a y value</p>
+<pre><code>//Predict y value
+LinearRegression.prototype.predict = function(x) {
+    //Calculate the y value
+    return this.coefficients.a + (this.coefficients.b * x);
+};</code></pre>
+
+
+
+<p>Testing what we have by now, Finally! 🤌</p>
+<pre><code>//Now we can use our LinearRegression
+let myLR = new LinearRegression();
+
+//Add some data points
+myLR.addData(1, 2);
+myLR.addData(2, 3);
+myLR.addData(3, 4);
+
+//Calculate the coefficients
+myLR.calculateCoefficients();
+
+//Predict a y value of your choose
+let y = myLR.predict(4); // y should be 5</code></pre>
+
+<small>Note: Complete code at the end of this post</small>
+
+
+
+<h2>Taking it Further: Implementing Gradient Descent in JavaScript</h2>
+<p>Your code should be working fine by now, so now what? Well, it may be working but there is a small step yet to be made
+  - <b>Gradient Descent</b>.</p>
+<p>Gradient descent is a powerful optimization technique used to minimize the cost of a linear regression. In this
+  section, we'll explore how to implement gradient descent in JavaScript. We'll discuss the mathematics of gradient
+  descent, discuss the code for implementing it in JavaScript.</p>
+
+<p>Gradient descent in linear regression is an optimization algorithm used to minimize the cost function of a linear
+  model. It works by iteratively updating the parameters of the model in small steps in the opposite direction of the
+  gradient of the cost function with respect to the parameters. This allows the cost function to be minimized, and
+  thus the model to be optimized for a given set of data. By repeating this process, the model can be continually
+  improved until a satisfactory level of accuracy is achieved</p>
+
+<p>This function should be used inside the LinearRegression class, and will use the coefficients calculated by the
+  calculateCoefficients function to adjust the coefficients based on the data points, making you trained data just
+  perfect.</p>
+<pre><code>//Implementing gradientDescent
+LinearRegression.prototype.gradientDescent = function(learningRate, numIterations) {
+    //Calculate the gradients
+    let mGradient = 0;
+    let bGradient = 0;
+
+    for (let i = 0; i < this.data.length; i++) {
+        let x = this.data[i][0];
+        let y = this.data[i][1];
+        let error = y - (this.coefficients.a + (this.coefficients.b * x));
+
+        mGradient += -(1 / this.data.length) * x * error;
+        bGradient += -(1 / this.data.length) * error;
+    }
+
+    //Update the coefficients
+    this.coefficients.a -= learningRate * bGradient;
+    this.coefficients.b -= learningRate * mGradient;
+
+    //Check for numIterations
+    if (numIterations === 0) return;
+
+    //Repeat
+    this.gradientDescent(learningRate, numIterations - 1);
+};</code></pre>
+
+<p>Now Create a function to train your data.</p>
+<pre>//We will create a function to train our model
+LinearRegression.prototype.train = function(learningRate, numIterations) {
+    //Calculate the coefficients
+    this.calculateCoefficients();
+
+    //Train the model using gradient descent
+    this.gradientDescent(learningRate, numIterations);
+};</pre>
+
+
+<p>Testing what we have by now:</p>
+<pre><code>//Create a new instance of the LinearRegression
+let myLR = new LinearRegression();
+
+//Add some data points
+myLR.addData(1, 2);
+myLR.addData(2, 3);
+myLR.addData(3, 4);
+
+//Train the model
+myLR.train(0.001, 100);
+
+//Predict a y value
+let y = myLR.predict(4); // y should be 5</code></pre>
+
+<small>Note: Complete code at the end of this post</small>
+
+
+<h2>Tips and Tricks for Optimizing And Use Your Model</h2>
+<p>Are you looking to get the most out of your linear regression model? Are you in search of effective methods to make
+  the most of your linear regression model?</p>
+<p>Yes, there are still some things you can do to optimize the algorithm but also the way you use your model, but don't stress, we will be very light with this, and since your code is working let's not start turning everything upside down. 
+</p>
+
+<h3>Optimizing the Model</h3>
+<p>So first, let's talk about something that you may have noticed in your code  <code> myLR.train(0.001, 100); </code> -
+  "what are those numbers?"</p>
+<p>Those numbers, <b>"learning rate"</b> and <b>"number of iterations"</b> indicate how precise you wanna be with your results, but
+  don't go rush into scalling those values to have the best results, it doesn't work like that. </p>
+<p>First let's take a look of what they represent:</p>
+<ul>
+  <li><b>The learning rate</b> (also known as the step size) is a parameter used in gradient descent. It determines
+    the size
+    of the steps taken when updating the parameters of the model. A higher learning rate will allow the model to
+    learn faster, but can also lead to divergence and instability, meaning, jumping over the target value. In the other
+    hand, lower values make the model learn slower, and in some circunstances can make it also lead to divergence and
+    instability</li>
+  <li><b>The number of iterations</b> (also known as epochs) is another parameter used in gradient descent. It
+    determines the
+    number of times the algorithm will cycle through the training data before terminating. The number of iterations
+    should be large enough to ensure that the model has had enough time to learn, but not so large that the model is
+    overfitting the data.</li>
+</ul>
+<p>Now that you know what they are, let's talk about those parameters should be set.</p>
+<p>When setting these parameters, it's important to find the right balance. Start with a low learning rate and a high number of iterations, and gradually increase the learning rate while decreasing the number of iterations until the algorithm converges on the global minimum. The global minimum is the point in a cost function where the value is minimized. In other words, it's the point where the algorithm is able to produce the most accurate results with the least amount of steps and the higher learning rate.</p>
+
+
+<h3>Optimizing The Algorithm</h3>
+<p>Your algorithm it's done and working fine, but is it? A sword without cutting edges isn't really a sword is it? - I don't think so.</p>
+<p>I'll be leaving a list of things you can do to optimize your code. In case you wish me to continue this as a series, just let me know in the comments or ping me on <a
+    href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">LinkedIn</a></p>
+<ol>
+  <li>You can optimize this code by using caching. Caching involves storing the results of expensive computations so that
+    they can be reused without having to be recomputed. This can significantly reduce the time taken to run the code.
+  </li>
+  <li>For example, you can cache the results of the calculations done in the calculateCoefficients and gradientDescent
+    functions. you could also use caching for the data points added in the addData function. This would reduce the amount
+    of time taken to process the data, as the results would already be stored in memory.</li>
+  <li>You could also use a more efficient algorithm to calculate the coefficients and gradients, such as using matrix
+    operations or using the normal equation. This could speed up the code even further.</li>
+  <li>You could also refactor the code to use a more object-oriented approach, which would make the code easier to read
+    and understand, as you'll as potentially make it more efficient.</li>
+</ol>
+
+<h2>Complete Code</h2>
+<pre><code>//First we will create our LinearRegression constructor
+function LinearRegression() {
+    //Store our data
+    this.data = [];
+
+    //Store our coefficients
+    this.coefficients = {
+        a: 0,
+        b: 0
+    };
+
+    //Store our mean values
+    this.means = {
+        x: 0,
+        y: 0
+    };
+}
+
+//We will create a function to add our data points
+LinearRegression.prototype.addData = function(x, y) {
+    //Add the data point to our array
+    this.data.push([x, y]);
+};
+
+//We will create a function to calculate the coefficients
+LinearRegression.prototype.calculateCoefficients = function() {
+    //If there is no data, return
+    if (this.data.length == 0) return;
+
+    //Calculate the means
+    let sumX = 0;
+    let sumY = 0;
+
+    this.data.forEach(function(point) {
+        sumX += point[0];
+        sumY += point[1];
+    });
+
+    this.means.x = sumX / this.data.length;
+    this.means.y = sumY / this.data.length;
+
+    //Calculate the coefficients
+    let numerator = 0;
+    let denominator = 0;
+
+    this.data.forEach(function(point) {
+        numerator += (point[0] - this.means.x) * (point[1] - this.means.y);
+        denominator += Math.pow(point[0] - this.means.x, 2);
+    }, this);
+
+    this.coefficients.b = numerator / denominator;
+    this.coefficients.a = this.means.y - (this.coefficients.b * this.means.x);
+};
+
+//We will create a function to predict a y value
+LinearRegression.prototype.predict = function(x) {
+    //Calculate the y value
+    return this.coefficients.a + (this.coefficients.b * x);
+};
+
+
+//Implementing gradient descent
+LinearRegression.prototype.gradientDescent = function(learningRate, numIterations) {
+    //Calculate the gradients
+    let mGradient = 0;
+    let bGradient = 0;
+
+    for (let i = 0; i < this.data.length; i++) {
+        let x = this.data[i][0];
+        let y = this.data[i][1];
+        let error = y - (this.coefficients.a + (this.coefficients.b * x));
+
+        mGradient += -(1 / this.data.length) * x * error;
+        bGradient += -(1 / this.data.length) * error;
+    }
+
+    //Update the coefficients
+    this.coefficients.a -= learningRate * bGradient;
+    this.coefficients.b -= learningRate * mGradient;
+
+    //Check for numIterations
+    if (numIterations === 0) return;
+
+    //Repeat
+    this.gradientDescent(learningRate, numIterations - 1);
+};
+
+//We will create a function to train our model
+LinearRegression.prototype.train = function(learningRate, numIterations) {
+    //Calculate the coefficients
+    this.calculateCoefficients();
+
+    //Train the model using gradient descent
+    this.gradientDescent(learningRate, numIterations);
+};</code></pre>
+
+<br>
+<p>Testing</p>
+
+<pre><code>//Create a new instance of the LinearRegression
+let myLR = new LinearRegression();
+
+//Add some data points
+myLR.addData(1, 2);
+myLR.addData(2, 3);
+myLR.addData(3, 4);
+
+//Train the model
+myLR.train(0.001, 100);
+
+//Predict a y value
+let y = myLR.predict(4); // y should be 5</code></pre>
+
+<h2>Conclusion</h2>
+<p>In conclusion, we have created a LinearRegression in pure JavaScript which allows us to add data, calculate coefficients, and predict y values. We have also implemented gradient descent to train the model. This LinearRegression can be used to solve a variety of linear regression problems.</p>
+
+<p>You can find more content like this in this&nbsp;<a href="https://github.com/RicardoRibeirorr">GitHub repo</a>,&nbsp;<a href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">Linkedin</a>, or&nbsp;<a href="https://ricardoribeirorr.github.io/">RicardoRibeiro.blog</a></p>
+<p>Thanks 🙏 for reading this, and feel free to share this with your colleagues. If you have any question, I’d love to answer those 😊</p>
