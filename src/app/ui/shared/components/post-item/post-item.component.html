@@ -4,7 +4,7 @@
         src="{{post.image}}" alt="">
     </div>
     <div class="card-body">
-      <h4 class="h5 card-title text-dark mb-3 ellipsosis-second">{{post.title}}</h4>
+      <h2 class="h5 card-title text-dark mb-3 ellipsosis-second">{{post.title}}</h2>
       <p class="small card-text text-muted ellipsosis-second">{{post.description}}</p>
     </div>
     <a href="#/post/{{post.id}}" class="stretched-link"></a>
@@ -12,7 +12,7 @@
 
   <div class="share-btns">
     <div class="dropdown">
-      <a class="btn btn-link share-dropdown-button" href="#" role="button" id="dropdownMenuLink" data-mdb-toggle="dropdown"
+      <a [id]="'btn-shared-dropdown-'+post.id" class="btn btn-link share-dropdown-button" href="#" role="button" id="dropdownMenuLink" data-mdb-toggle="dropdown"
         aria-expanded="false">
         <i class="fa-solid fa-share-nodes"></i></a>
       <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
