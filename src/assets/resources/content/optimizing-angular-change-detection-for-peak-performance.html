@@ -50,7 +50,109 @@ export class NumberListComponent implements OnInit {
 }</code></pre>
     <p>Upon inspection, this component exhibited a change detection cycle of 12 - 14ms. 😯</p>
     <p>This scenario illustrates a common issue with long change detection cycles in lists. Mitigate this by implementing a virtual scrolling strategy, such as the one offered by Angular Material CDK's <a href="https://material.angular.io/cdk/scrolling/overview">virtual scrolling package</a>.</p>
-    <h2>In Conclusion</h2>
+    
+
+<h2>Still with problems? Check this possibilities</h2>
+
+    <!-- Inefficient Change Detection -->
+    <section>
+        <h3>Inefficient Change Detection</h3>
+        <p>
+            Angular's default change detection strategy can lead to inefficiencies, especially in large applications with frequent updates.
+        </p>
+        <h4>How to Test:</h4>
+        <p>
+            Utilize Angular profiling tools and third-party tools like Chrome DevTools to identify components triggering frequent change detection.
+        </p>
+        <h4>How to Solve:</h4>
+        <p>
+            Implement the OnPush change detection strategy for components where appropriate to reduce unnecessary checks.
+        </p>
+    </section>
+
+    <!-- Heavy DOM Manipulation -->
+    <section>
+        <h3>Heavy DOM Manipulation</h3>
+        <p>
+            Excessive manipulation of the DOM, such as frequent additions or removals of elements, can impact performance.
+        </p>
+        <h4>How to Test:</h4>
+        <p>
+            Use browser profiling tools to analyze rendering performance and identify areas with high DOM manipulation.
+        </p>
+        <h4>How to Solve:</h4>
+        <p>
+            Implement virtual scrolling for long lists and minimize DOM manipulations by updating only the necessary elements.
+        </p>
+    </section>
+
+    <!-- Unoptimized Network Requests -->
+    <section>
+        <h3>Unoptimized Network Requests</h3>
+        <p>
+            Slow API calls or unoptimized data fetching methods can result in delays, impacting the overall speed of your Angular project.
+        </p>
+        <h4>How to Test:</h4>
+        <p>
+            Monitor network activity using browser tools and identify slow or redundant API requests.
+        </p>
+        <h4>How to Solve:</h4>
+        <p>
+            Optimize API calls by implementing techniques like pagination, caching, and reducing unnecessary requests.
+        </p>
+    </section>
+
+    <!-- Large Bundles -->
+    <section>
+        <h3>Large Bundles</h3>
+        <p>
+            Including unnecessary libraries or components can lead to larger bundle sizes, affecting initial loading times.
+        </p>
+        <h4>How to Test:</h4>
+        <p>
+            Use tools like Webpack Bundle Analyzer to visualize the size of your bundles and identify large dependencies.
+        </p>
+        <h4>How to Solve:</h4>
+        <p>
+            Employ code splitting and lazy loading to load only essential code when needed, reducing the initial bundle size.
+        </p>
+    </section>
+
+    <!-- Memory Leaks -->
+    <section>
+        <h3>Memory Leaks</h3>
+        <p>
+            Unintentional memory leaks, often caused by retained references, can gradually degrade performance over time.
+        </p>
+        <h4>How to Test:</h4>
+        <p>
+            Regularly audit your code using tools like Chrome DevTools to identify potential memory leaks.
+        </p>
+        <h4>How to Solve:</h4>
+        <p>
+            Address memory leaks promptly by releasing unnecessary references and optimizing memory usage.
+        </p>
+    </section>
+
+    <!-- Additional Tips -->
+    <section>
+        <h3>Additional Tips</h3>
+        <ul>
+            <li>Implement server-side compression for faster content delivery.</li>
+            <li>Consider lazy loading modules to improve page load times.</li>
+            <li>Optimize images and other assets to reduce download sizes.</li>
+            <li>Regularly update dependencies to benefit from performance improvements.</li>
+        </ul>
+    </section>
+
+    <p>
+        By addressing these common performance issues and implementing the suggested solutions, you can significantly enhance the speed and responsiveness of your Angular project.
+    </p>
+
+
+
+
+<h2>In Conclusion</h2>
     <p>Congratulations! You've gained insights into quickly enabling change detection debugging and assessing Angular change detection duration.</p>
     <p>Questions or comments? Feel free to reach out.</p>
 <br><br>
