@@ -1,0 +1,61 @@
+<article>
+    <h1 class="heading post-title">Optimizing Angular Change Detection for Peak Performance</h1>
+    <br>
+    <h2>Unlock the Potential: Identifying and Enhancing Angular Change Detection Efficiency</h2>
+    <h3>Elevate your Angular application's performance with these insightful strategies.</h3>
+    <p>Did you know that Angular's change detection process has its limits?</p>
+    <p>Failure to navigate these limits could result in a sluggish application, tarnishing your reputation as a developer.</p>
+    <p>Let's take a deep dive into Angular's engine and explore techniques to identify and address change detection issues effectively.</p>
+    <h2>Understanding Angular Change Detection Mechanics</h2>
+    <p>Angular relies on the widely recognized Zone.js library to detect DOM events, such as mouse clicks and keyboard inputs.</p>
+    <p>Zone.js, when triggered by a DOM event, checks data bindings and updates them to ensure a consistently fresh user interface.</p>
+    <p>However, this powerful feature comes with limitations, and improper use can lead to performance issues.</p>
+    <p>So, how can we pinpoint change detection bottlenecks?</p>
+    <h2>Activating Angular's Debug Tools</h2>
+    <p>Edit your <code>main.ts</code> file, responsible for bootstrapping your Angular application, as follows:</p>
+    <pre><code class="language-typescript">platformBrowserDynamic().bootstrapModule(AppModule)
+  .then(module =&gt; enableDebugTools(module.injector.get(ApplicationRef).components[0]))
+  .catch(err =&gt; console.error(err));</code></pre>
+    <h2>Profiling Change Detection Time</h2>
+    <p>With the debug tools enabled, launch your Angular application with <code>ng serve --open</code>.</p>
+    <p>Open the console in Developer Tools and measure the duration of the last change detection cycle using:</p>
+    <pre><code class="language-bash">ng.profiler.timeChangeDetection()</code></pre>
+    <p>For a basic Angular application, aim for a change detection cycle between 0.01 - 0.05 milliseconds, never exceeding 10ms.</p>
+    <h2>Addressing Poor Change Detection Performance</h2>
+    <p>Consider an Angular component displaying a list of 5,000 random numbers.</p>
+    <pre><code class="language-typescript">import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-number-list',
+  template: `
+    &lt;ul&gt;
+        &lt;li *ngFor="let number of numbers"&gt;{{ number }}&lt;/li&gt;
+    &lt;/ul&gt;
+  `,
+  styleUrls: ['./number-list.component.css']
+})
+export class NumberListComponent implements OnInit {
+
+  numbers: number[] = [];
+
+  constructor() { }
+
+  ngOnInit(): void {
+    this.generateNumbers();
+  }
+
+  generateNumbers(): void {
+    for(let i = 0; i &lt; 5000; i++) {
+      let number = Math.random();
+      this.numbers.push(number);
+    }
+  }
+}</code></pre>
+    <p>Upon inspection, this component exhibited a change detection cycle of 12 - 14ms. 😯</p>
+    <p>This scenario illustrates a common issue with long change detection cycles in lists. Mitigate this by implementing a virtual scrolling strategy, such as the one offered by Angular Material CDK's <a href="https://material.angular.io/cdk/scrolling/overview">virtual scrolling package</a>.</p>
+    <h2>In Conclusion</h2>
+    <p>Congratulations! You've gained insights into quickly enabling change detection debugging and assessing Angular change detection duration.</p>
+    <p>Questions or comments? Feel free to reach out.</p>
+    <p><img loading="lazy" alt="" src="https://danielk.tech/user/pages/01.home/heres-how-you-can-improve-angular-change-detection-performance/signature.png"></p>
+    <p>Angular Expert &amp; Consultant</p>
+</article>
