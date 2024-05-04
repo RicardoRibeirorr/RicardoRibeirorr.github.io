@@ -54,6 +54,70 @@ factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         <!-- More detailed explanations for other security risks -->
 
         <!-- Continue with the rest of the OWASP Top 10 security risks -->
+
+        <h2>5. Broken Access Control</h2>
+        <p>Broken access control occurs when users are able to access unauthorized functionality or data. This can happen due to insufficient authorization checks, insecure direct object references (IDOR), or misconfigured access controls. Attackers can exploit these vulnerabilities to gain unauthorized access to sensitive data, perform privileged actions, or escalate privileges.</p>
+        <h3>Example of Role-Based Access Control (RBAC):</h3>
+        <pre>
+            <code>
+if (user.role == 'admin') {
+    // Allow access to admin features
+}
+            </code>
+        </pre>
+        <img src="access-control.jpg" alt="Broken Access Control">
+
+        <h2>6. Security Misconfiguration</h2>
+        <p>Security misconfiguration occurs due to insecure default configurations, incomplete configurations, or the use of default credentials. This can expose sensitive data, enable unauthorized access, or create other security vulnerabilities. Attackers often exploit security misconfigurations to gain unauthorized access to systems, escalate privileges, or perform other malicious activities.</p>
+        <h3>Example of Regular Security Audits:</h3>
+        <pre>
+            <code>
+Regularly audit and review server configurations.
+            </code>
+        </pre>
+        <img src="misconfiguration.jpg" alt="Security Misconfiguration">
+
+        <h2>7. Cross-Site Scripting (XSS)</h2>
+        <p>Cross-Site Scripting (XSS) vulnerabilities occur when web applications include untrusted data in the output sent to a web browser without proper validation or escaping. This allows attackers to execute malicious scripts in the context of other users' sessions, leading to various attacks such as session hijacking, data theft, defacement, and more.</p>
+        <h3>Example of Input Sanitization:</h3>
+        <pre>
+            <code>
+String sanitizedInput = sanitize(input);
+            </code>
+        </pre>
+        <img src="xss.jpg" alt="Cross-Site Scripting (XSS)">
+
+        <h2>8. Insecure Deserialization</h2>
+        <p>Insecure deserialization vulnerabilities occur when untrusted data is deserialized by a program without proper validation. Attackers can exploit these vulnerabilities to execute arbitrary code, perform denial-of-service attacks, tamper with serialized objects, and more. Insecure deserialization vulnerabilities often lead to severe security breaches and can have significant impacts on the integrity, availability, and confidentiality of web applications and systems.</p>
+        <h3>Example of Input Validation:</h3>
+        <pre>
+            <code>
+if (isValid(input)) {
+    // Deserialize data
+}
+            </code>
+        </pre>
+        <img src="deserialization.jpg" alt="Insecure Deserialization">
+
+        <h2>9. Using Components with Known Vulnerabilities</h2>
+        <p>Many web applications rely on third-party components such as libraries, frameworks, and plugins. However, using components with known vulnerabilities can introduce security risks into the application. Attackers actively scan for and exploit vulnerabilities in these components to compromise web applications, steal sensitive data, or launch attacks against users.</p>
+        <h3>Example of Dependency Scanning:</h3>
+        <pre>
+            <code>
+Use tools like OWASP Dependency-Check to scan for vulnerabilities.
+            </code>
+        </pre>
+        <img src="components.jpg" alt="Using Components with Known Vulnerabilities">
+
+        <h2>10. Insufficient Logging & Monitoring</h2>
+        <p>Insufficient logging and monitoring make it difficult to detect and respond to security incidents. Effective logging and monitoring are essential for identifying suspicious activities, investigating security breaches, and mitigating potential threats. Without adequate logging and monitoring mechanisms in place, organizations may fail to detect security incidents in a timely manner, leading to prolonged exposure and increased damage.</p>
+        <h3>Example of Centralized Logging:</h3>
+        <pre>
+            <code>
+Aggregate logs from all application components into a centralized logging system.
+            </code>
+        </pre>
+        <img src="logging.jpg" alt="Insufficient Logging & Monitoring">
     </article>
 
 <p>You can find more content like this in this&nbsp;<a href="https://github.com/RicardoRibeirorr">GitHub repo</a>,&nbsp;<a href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">Linkedin</a>, or&nbsp;<a href="https://ricardoribeirorr.github.io/">RicardoRibeiro.blog</a></p>
