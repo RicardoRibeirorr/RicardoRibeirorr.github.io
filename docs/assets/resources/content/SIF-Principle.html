@@ -1,0 +1,120 @@
+<p>In large codebases, managing multiple files for interfaces can become overwhelming. The Single-Interface File
+  Principle suggests grouping closely related interfaces into a single file to reduce clutter and enhance
+  maintainability.</p>
+
+<h2>Introduction</h2>
+<p>When defining interfaces that extend a base interface and are exclusively related, grouping them
+into one file is beneficial. This approach minimizes file clutter, enhances cohesion, and improves maintainability.</p>
+
+<h2>Rationale</h2>
+<ul>
+  <li>Reduces File Clutter: Keeps the number of files in a project manageable, reducing the overhead of navigating
+    through numerous files.</li>
+  <li>Enhances Cohesion: Maintains a logical grouping of related interfaces, making it easier to understand their
+    relationships and dependencies.</li>
+  <li>Improves Maintainability: Simplifies updates and modifications by consolidating related changes into a single
+    location.</li>
+</ul>
+
+
+<h2>Example 1: Basic Shape Interfaces</h2>
+<p>Let's start with a basic example of shape interfaces:</p>
+<pre>
+            <code>
+// iShape.ts
+interface iShape {
+    area(): number;
+    perimeter(): number;
+}
+
+interface iShapeSquare extends iShape {
+    sideLength: number;
+}
+
+interface iShapeCircle extends iShape {
+    radius: number;
+}
+
+interface iShapeTriangle extends iShape {
+    base: number;
+    height: number;
+}
+            </code>
+        </pre>
+
+<h2>Example 2: Animal Interfaces</h2>
+<p>Another example can be interfaces for different types of animals:</p>
+<pre>
+            <code>
+// iAnimal.ts
+interface iAnimal {
+    sound(): string;
+    habitat(): string;
+}
+
+interface iMammal extends iAnimal {
+    furType: string;
+}
+
+interface iBird extends iAnimal {
+    wingSpan: number;
+}
+
+interface iFish extends iAnimal {
+    waterType: string;
+}
+            </code>
+        </pre>
+
+<h2>Example 3: Vehicle Interfaces</h2>
+<p>Consider a set of interfaces for different types of vehicles:</p>
+<pre>
+            <code>
+// iVehicle.ts
+interface iVehicle {
+    speed(): number;
+    fuelType(): string;
+}
+
+interface iCar extends iVehicle {
+    numberOfDoors: number;
+}
+
+interface iBike extends iVehicle {
+    type: string;
+}
+
+interface iTruck extends iVehicle {
+    cargoCapacity: number;
+}
+            </code>
+        </pre>
+
+
+<h2>Benefits</h2>
+<ul>
+  Organization: All shape-related interfaces are contained within one file, making it clear where to find the
+  definitions related to shapes.
+  Efficiency: Easier to manage and refactor related code since it's all in one place.
+  Scalability: As long as the interfaces are closely related, the file remains understandable and does not become
+  overwhelmingly large.
+</ul>
+<h2>Considerations</h2>
+<ul>
+  <li>File Size: Ensure the single file does not become too large or unwieldy. If the file grows too much, consider
+    breaking it down while maintaining logical groupings.</li>
+  <li>Readability: Keep the code readable and well-documented to prevent confusion, especially as the number of
+    interfaces grows.</li>
+  <li>Team Conventions: Align with your team's coding conventions and project structure guidelines to ensure consistency
+    across the codebase.</li>
+</ul>
+
+
+<p>By following this principle, you can maintain a cleaner and more organized project structure, enhancing both
+  productivity and code maintainability.</p>
+
+
+
+
+<p>You can find more content like this in this&nbsp;<a href="https://github.com/RicardoRibeirorr">GitHub repo</a>,&nbsp;<a href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">Linkedin</a>, or&nbsp;<a href="https://ricardoribeirorr.github.io/">RicardoRibeiro.blog</a></p>
+<p>Thanks 🙏 for reading this, and feel free to share this with your colleagues. If you have any question, I’d love to answer those 😊</p>

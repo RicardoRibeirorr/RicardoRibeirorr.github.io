@@ -1,0 +1,124 @@
+OWAP-Top-10-For-Beginners
+
+<article>
+        <h2>1. Injection</h2>
+        <p>Injection flaws occur when untrusted data is sent to an interpreter as part of a command or query. This can lead to the execution of unintended commands or unauthorized access to data. Common types include SQL injection, NoSQL injection, and LDAP injection.</p>
+        <h3>Example of SQL Injection:</h3>
+        <pre>
+            <code>
+String query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+ResultSet result = statement.executeQuery(query);
+            </code>
+        </pre>
+        <img src="injection.jpg" alt="Injection">
+        
+        <h2>2. Broken Authentication</h2>
+        <p>Broken authentication vulnerabilities occur when attackers compromise user credentials or session tokens, enabling unauthorized access to user accounts. This can lead to account takeover, unauthorized access to sensitive information, and more.</p>
+        <h3>Example of Multi-factor Authentication (MFA):</h3>
+        <pre>
+            <code>
+public void authenticateUser(String username, String password, String otpCode) {
+    // Verify username and password
+    // Verify OTP code
+    // Allow access if all verifications pass
+}
+            </code>
+        </pre>
+        <img src="authentication.jpg" alt="Broken Authentication">
+
+        <!-- More detailed explanations for other security risks -->
+
+        <h2>3. Sensitive Data Exposure</h2>
+        <p>Sensitive data exposure occurs when sensitive information is not adequately protected. This can include passwords, credit card numbers, health records, and more. When exposed, this data can be exploited by attackers for identity theft, financial fraud, and other malicious activities.</p>
+        <h3>Example of Encryption of Data-at-Rest:</h3>
+        <pre>
+            <code>
+AES256.encrypt(data, encryptionKey);
+            </code>
+        </pre>
+        <img src="data-exposure.jpg" alt="Sensitive Data Exposure">
+
+        <!-- More detailed explanations for other security risks -->
+
+        <h2>4. XML External Entities (XXE)</h2>
+        <p>XXE vulnerabilities occur when an application parses XML input, allowing attackers to access files on the server or interact with internal systems. This can lead to unauthorized data disclosure, server-side request forgery (SSRF), and more.</p>
+        <h3>Example of Disabling External Entity Processing:</h3>
+        <pre>
+            <code>
+DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            </code>
+        </pre>
+        <img src="xxe.jpg" alt="XML External Entities (XXE)">
+
+        <!-- More detailed explanations for other security risks -->
+
+        <!-- Continue with the rest of the OWASP Top 10 security risks -->
+
+        <h2>5. Broken Access Control</h2>
+        <p>Broken access control occurs when users are able to access unauthorized functionality or data. This can happen due to insufficient authorization checks, insecure direct object references (IDOR), or misconfigured access controls. Attackers can exploit these vulnerabilities to gain unauthorized access to sensitive data, perform privileged actions, or escalate privileges.</p>
+        <h3>Example of Role-Based Access Control (RBAC):</h3>
+        <pre>
+            <code>
+if (user.role == 'admin') {
+    // Allow access to admin features
+}
+            </code>
+        </pre>
+        <img src="access-control.jpg" alt="Broken Access Control">
+
+        <h2>6. Security Misconfiguration</h2>
+        <p>Security misconfiguration occurs due to insecure default configurations, incomplete configurations, or the use of default credentials. This can expose sensitive data, enable unauthorized access, or create other security vulnerabilities. Attackers often exploit security misconfigurations to gain unauthorized access to systems, escalate privileges, or perform other malicious activities.</p>
+        <h3>Example of Regular Security Audits:</h3>
+        <pre>
+            <code>
+Regularly audit and review server configurations.
+            </code>
+        </pre>
+        <img src="misconfiguration.jpg" alt="Security Misconfiguration">
+
+        <h2>7. Cross-Site Scripting (XSS)</h2>
+        <p>Cross-Site Scripting (XSS) vulnerabilities occur when web applications include untrusted data in the output sent to a web browser without proper validation or escaping. This allows attackers to execute malicious scripts in the context of other users' sessions, leading to various attacks such as session hijacking, data theft, defacement, and more.</p>
+        <h3>Example of Input Sanitization:</h3>
+        <pre>
+            <code>
+String sanitizedInput = sanitize(input);
+            </code>
+        </pre>
+        <img src="xss.jpg" alt="Cross-Site Scripting (XSS)">
+
+        <h2>8. Insecure Deserialization</h2>
+        <p>Insecure deserialization vulnerabilities occur when untrusted data is deserialized by a program without proper validation. Attackers can exploit these vulnerabilities to execute arbitrary code, perform denial-of-service attacks, tamper with serialized objects, and more. Insecure deserialization vulnerabilities often lead to severe security breaches and can have significant impacts on the integrity, availability, and confidentiality of web applications and systems.</p>
+        <h3>Example of Input Validation:</h3>
+        <pre>
+            <code>
+if (isValid(input)) {
+    // Deserialize data
+}
+            </code>
+        </pre>
+        <img src="deserialization.jpg" alt="Insecure Deserialization">
+
+        <h2>9. Using Components with Known Vulnerabilities</h2>
+        <p>Many web applications rely on third-party components such as libraries, frameworks, and plugins. However, using components with known vulnerabilities can introduce security risks into the application. Attackers actively scan for and exploit vulnerabilities in these components to compromise web applications, steal sensitive data, or launch attacks against users.</p>
+        <h3>Example of Dependency Scanning:</h3>
+        <pre>
+            <code>
+Use tools like OWASP Dependency-Check to scan for vulnerabilities.
+            </code>
+        </pre>
+        <img src="components.jpg" alt="Using Components with Known Vulnerabilities">
+
+        <h2>10. Insufficient Logging & Monitoring</h2>
+        <p>Insufficient logging and monitoring make it difficult to detect and respond to security incidents. Effective logging and monitoring are essential for identifying suspicious activities, investigating security breaches, and mitigating potential threats. Without adequate logging and monitoring mechanisms in place, organizations may fail to detect security incidents in a timely manner, leading to prolonged exposure and increased damage.</p>
+        <h3>Example of Centralized Logging:</h3>
+        <pre>
+            <code>
+Aggregate logs from all application components into a centralized logging system.
+            </code>
+        </pre>
+        <img src="logging.jpg" alt="Insufficient Logging & Monitoring">
+    </article>
+
+<p>You can find more content like this in this&nbsp;<a href="https://github.com/RicardoRibeirorr">GitHub repo</a>,&nbsp;<a href="https://www.linkedin.com/in/ricardo-ribeiro-5a788712b/">Linkedin</a>, or&nbsp;<a href="https://ricardoribeirorr.github.io/">RicardoRibeiro.blog</a></p>
+<p>Thanks 🙏 for reading this, and feel free to share this with your colleagues. If you have any question, I’d love to answer those 😊</p>
