@@ -9,6 +9,7 @@ import { renderMiniChartsForPortfolio, clearMiniCharts, renderMiniChart } from '
 import { initAnalytics, refreshAnalytics } from './analytics.js';
 import { refreshAllocationChart } from './allocationChart.js';
 import { initHistorySnapshots, refreshHistorySnapshots } from './historySnapshots.js';
+import { formatDisplayPrice } from './priceFormat.js';
 
 const els = {};
 // Dynamic settings (defaults)
@@ -337,11 +338,12 @@ function renderSummary(rows) {
   const totalPast = rows.reduce((a, r) => a + (r.pastValue || 0), 0);
   const diff = totalCurrent - totalPast;
   const pct = totalPast ? (diff / totalPast) * 100 : 0;
+  const fmt2 = v => '€' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const summaryData = [
-    ['Total (current)', `€${totalCurrent.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`],
-    ['Total (on date)', `€${totalPast.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`],
-    ['Change (EUR)', `${diff >= 0 ? '+' : ''}€${diff.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`],
-    ['Change (%)', `${diff >= 0 ? '+' : ''}${pct.toFixed(2)}%`],
+    ['Total (current)', fmt2(totalCurrent)],
+    ['Total (on date)', fmt2(totalPast)],
+    ['Change (EUR)', (diff >= 0 ? '+' : '') + fmt2(Math.abs(diff))],
+    ['Change (%)', (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%'],
   ];
   for (const [label, value] of summaryData) {
     const spanL = document.createElement('div');
@@ -422,8 +424,8 @@ function renderTable(rows) {
         </div>
       </td>
   <td class="px-4 py-2 text-right">${row.quantity}</td>
-  <td class="px-4 py-2 text-right" data-cell="pastPrice" title="Price on ${acqDate}">${row.pastPrice != null ? '€' + row.pastPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
-  <td class="px-4 py-2 text-right" data-cell="currentPrice">${row.currentPrice != null ? '€' + row.currentPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+  <td class="px-4 py-2 text-right" data-cell="pastPrice" title="Price on ${acqDate}">${row.pastPrice != null ? '€' + formatDisplayPrice(row.pastPrice) : '—'}</td>
+  <td class="px-4 py-2 text-right font-mono" data-cell="currentPrice">${row.currentPrice != null ? '€' + row.currentPrice : '—'}</td>
       <td class="px-4 py-2 text-right ${diffCls}" data-cell="diff">${row.currentPrice != null && row.pastPrice != null ? (diff >= 0 ? '+' : '') + '€' + diff.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
       <td class="px-4 py-2 text-right ${diffCls}" data-cell="pct">${row.currentPrice != null && row.pastPrice != null ? (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</td>
       <td class="px-4 py-2 text-left" data-cell="status">${statusText}</td>
@@ -457,7 +459,7 @@ function renderTable(rows) {
             return `<tr>
               <td class="px-2 py-0.5 capitalize">${a.type}</td>
               <td class="px-2 py-0.5 text-right">${qtyDisp}</td>
-              <td class="px-2 py-0.5 text-right">${a.price != null ? '€'+a.price.toFixed(4):'—'}</td>
+              <td class="px-2 py-0.5 text-right">${a.price != null ? '€'+Number(a.price).toFixed(4) :'—'}</td>
               <td class="px-2 py-0.5 text-right">${a.valueEUR != null ? '€'+a.valueEUR.toFixed(2):'—'}</td>
               <td class="px-2 py-0.5 text-right ${rpCls}">${rp}</td>
               <td class="px-2 py-0.5 flex items-center gap-2">${a.date}<button data-del-action="${row.symbol}|${a.id}" class="text-[10px] text-red-600 hover:underline ml-auto">✕</button></td>
@@ -519,8 +521,8 @@ function updateRowComputed(row) {
   const diffCell = tr.querySelector('[data-cell="diff"]');
   const pctCell = tr.querySelector('[data-cell="pct"]');
   const statusCell = tr.querySelector('[data-cell="status"]');
-  if (currentCell) currentCell.textContent = row.currentPrice != null ? '€' + row.currentPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
-  if (pastCell) pastCell.textContent = row.pastPrice != null ? '€' + row.pastPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  if (currentCell) currentCell.textContent = row.currentPrice != null ? '€' + row.currentPrice : '—';
+  if (pastCell) pastCell.textContent = row.pastPrice != null ? '€' + formatDisplayPrice(row.pastPrice) : '—';
   if (diffCell) { diffCell.className = `px-4 py-2 text-right ${diffCls}`; diffCell.textContent = (row.currentPrice != null && row.pastPrice != null) ? (diff >= 0 ? '+' : '') + '€' + diff.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'; }
   if (pctCell) { pctCell.className = `px-4 py-2 text-right ${diffCls}`; pctCell.textContent = (row.currentPrice != null && row.pastPrice != null) ? (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'; }
   if (statusCell) statusCell.textContent = row.statusText;

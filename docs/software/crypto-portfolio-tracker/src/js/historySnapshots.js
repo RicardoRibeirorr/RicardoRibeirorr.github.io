@@ -27,6 +27,19 @@ function directionIcon(deltaPct) {
 
 function fmtEUR(v) { return v == null ? '—' : '€' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtPct(v) { return v == null ? '—' : (v >=0 ? '+' : '') + v.toFixed(2) + '%'; }
+function fmtPrice(v) {
+  if (v == null || !isFinite(v)) return '—';
+  const abs = Math.abs(v);
+  const opts = abs >= 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { minimumFractionDigits: 2, maximumFractionDigits: 8 };
+  let out = v.toLocaleString(undefined, opts);
+  if (abs < 1) {
+    // Trim redundant trailing zeros after decimal, but keep at least 2 decimals
+    out = out.replace(/(\.\d*?[1-9])0+$/,'$1');
+    // Ensure at least two decimals
+    if (/\.\d$/.test(out)) out += '0';
+  }
+  return out;
+}
 
 // We attempt to retrieve daily prices via market_chart for up to 90 days.
 // For intra-day (12h) we approximate using the closest daily point (will be coarse) - limitation of using daily interval.
@@ -117,7 +130,7 @@ function renderSnapshotTable(data) {
       <td class="px-2 py-1">${directionIcon(r.deltaPct)}</td>
       <td class="px-2 py-1">${r.horizon.label}</td>
       <td class="px-2 py-1 text-right">${fmtEUR(r.portfolioTotal)}</td>
-      ${symbols.map(s => `<td class='px-2 py-1 text-right'>${r.prices[s] != null ? r.prices[s].toFixed(4) : '—'}</td>`).join('')}
+  ${symbols.map(s => `<td class='px-2 py-1 text-right'>${r.prices[s] != null ? fmtPrice(r.prices[s]) : '—'}</td>`).join('')}
       <td class="px-2 py-1 text-right ${cls}">${r.deltaEUR != null ? (r.deltaEUR >=0?'+':'') + '€' + r.deltaEUR.toFixed(2) : '—'}</td>
       <td class="px-2 py-1 text-right ${cls}">${fmtPct(r.deltaPct)}</td>
     </tr>`;
