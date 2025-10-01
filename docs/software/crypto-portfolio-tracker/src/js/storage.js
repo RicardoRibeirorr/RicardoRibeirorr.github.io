@@ -8,6 +8,7 @@ const LS_KEY_COINLIST = 'coinListCacheV1';
 const LS_KEY_MARKET_CHART = 'marketChartCacheV1';
 const LS_KEY_SETTINGS = 'settingsV1';
 const LS_KEY_COIN_IMAGES = 'coinImagesCacheV1';
+const LS_KEY_SPOT_PRINTS = 'spotPrintsV1';
 
 function loadPortfolio() {
   try { return JSON.parse(localStorage.getItem(LS_KEY_PORTFOLIO)) || []; } catch { return []; }
@@ -74,6 +75,14 @@ function saveCoinImagesCache(obj) {
   localStorage.setItem(LS_KEY_COIN_IMAGES, JSON.stringify(obj));
 }
 
+function loadSpotPrints() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY_SPOT_PRINTS)) || []; } catch { return []; }
+}
+
+function saveSpotPrints(arr) {
+  localStorage.setItem(LS_KEY_SPOT_PRINTS, JSON.stringify(arr));
+}
+
 export {
   loadPortfolio,
   savePortfolio,
@@ -91,4 +100,6 @@ export {
   saveSettings,
   loadCoinImagesCache,
   saveCoinImagesCache,
+  loadSpotPrints,
+  saveSpotPrints,
 };

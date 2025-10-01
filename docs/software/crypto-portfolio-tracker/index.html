@@ -128,6 +128,25 @@
       </section>
 
       <section class="space-y-4">
+        <!-- Spot Prints Section -->
+        <div id="spotPrintsSection" class="p-4 md:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Spot Prints</h2>
+            <div class="flex gap-2">
+              <button id="addSpotPrintBtn" class="text-xs rounded-md bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 font-medium">Add Print</button>
+              <button id="clearSpotPrintsBtn" class="text-xs rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">Clear</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">Capture current portfolio & coin prices as a manual snapshot. Prices are stored locally. Green/red shows change vs prior print.</p>
+          <div class="overflow-x-auto" id="spotPrintsWrapper">
+            <table class="min-w-full text-[11px]" id="spotPrintsTable">
+              <thead id="spotPrintsThead"></thead>
+              <tbody id="spotPrintsTbody"></tbody>
+            </table>
+            <p id="spotPrintsEmpty" class="text-[11px] text-gray-500 py-2">No prints yet. Click Add Print.</p>
+          </div>
+        </div>
+        <!-- End Spot Prints Section -->
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">Holdings</h2>
         </div>

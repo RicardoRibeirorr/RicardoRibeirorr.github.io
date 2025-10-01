@@ -10,6 +10,7 @@ import { initAnalytics, refreshAnalytics } from './analytics.js';
 import { refreshAllocationChart } from './allocationChart.js';
 import { initHistorySnapshots, refreshHistorySnapshots } from './historySnapshots.js';
 import { formatDisplayPrice } from './priceFormat.js';
+import { listPrints, addPrint, removePrint, clearPrints } from './prints.js';
 
 const els = {};
 // Dynamic settings (defaults)
@@ -19,6 +20,7 @@ let settings = {
 };
 let priceCache = {};
 let latestRows = [];
+let last24hValue = { total: null, date: null, loading: false };
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -58,6 +60,13 @@ function initDOMRefs() {
   els.settingApiDelay = q('settingApiDelay');
   els.applySettingsBtn = q('applySettingsBtn');
   els.settingsStatus = q('settingsStatus');
+  // Spot prints
+  els.addSpotPrintBtn = q('addSpotPrintBtn');
+  els.clearSpotPrintsBtn = q('clearSpotPrintsBtn');
+  els.spotPrintsWrapper = q('spotPrintsWrapper');
+  els.spotPrintsTbody = q('spotPrintsTbody');
+  els.spotPrintsThead = q('spotPrintsThead');
+  els.spotPrintsEmpty = q('spotPrintsEmpty');
 }
 
 function defaultComparisonDate() {
@@ -216,6 +225,17 @@ function initControls() {
   if (els.settingsCloseBtn) {
     els.settingsCloseBtn.addEventListener('click', () => hideSettingsPanel());
   }
+  // Spot prints handlers
+  if (els.addSpotPrintBtn) {
+    els.addSpotPrintBtn.addEventListener('click', () => {
+      captureSpotPrint();
+    });
+  }
+  if (els.clearSpotPrintsBtn) {
+    els.clearSpotPrintsBtn.addEventListener('click', () => {
+      if (confirm('Clear all spot prints?')) { clearPrints(); renderSpotPrints(); }
+    });
+  }
   if (els.settingsToggleBtn) {
     els.settingsToggleBtn.addEventListener('click', toggleSettingsPanel);
   }
@@ -339,22 +359,57 @@ function renderSummary(rows) {
   const diff = totalCurrent - totalPast;
   const pct = totalPast ? (diff / totalPast) * 100 : 0;
   const fmt2 = v => '€' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  let delta24hSpan = '';
+  if (last24hValue.loading) {
+    delta24hSpan = ' <span class="text-[10px] text-gray-400">(… /24h)</span>';
+  } else if (last24hValue.total != null) {
+    const d24 = totalCurrent - last24hValue.total;
+    const sign = d24 >= 0 ? '+' : '-';
+    const cls = d24 === 0 ? '' : (d24 > 0 ? 'text-bull' : 'text-bear');
+    delta24hSpan = ` <span class="text-[10px] ${cls}">(${sign}€${Math.abs(d24).toFixed(2)} /24h)</span>`;
+  }
+  const currentLineHTML = fmt2(totalCurrent) + delta24hSpan;
   const summaryData = [
-    ['Total (current)', fmt2(totalCurrent)],
-    ['Total (on date)', fmt2(totalPast)],
+    ['Total (current)', currentLineHTML, true],
+    ['Total (on last action)', fmt2(totalPast)],
     ['Change (EUR)', (diff >= 0 ? '+' : '') + fmt2(Math.abs(diff))],
     ['Change (%)', (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%'],
   ];
-  for (const [label, value] of summaryData) {
+  for (const entry of summaryData) {
+    const [label, rawValue, isHTML] = entry;
     const spanL = document.createElement('div');
     spanL.textContent = label;
     const spanV = document.createElement('div');
-    spanV.textContent = value;
+    if (isHTML) spanV.innerHTML = rawValue; else spanV.textContent = rawValue;
     spanV.className = 'text-right font-medium';
     if (label.startsWith('Change')) {
       spanV.classList.add(diff >= 0 ? 'text-bull' : 'text-bear');
     }
     els.summary.append(spanL, spanV);
+  }
+}
+
+async function ensurePortfolio24hValue() {
+  if (last24hValue.loading) return;
+  const yesterday = new Date(Date.now() - 24*3600*1000).toISOString().slice(0,10);
+  if (last24hValue.date === yesterday && last24hValue.total != null) return;
+  last24hValue.loading = true; last24hValue.date = yesterday; last24hValue.total = null;
+  renderSummary(latestRows.map(r => ({ currentValue: (r.currentPrice || 0) * r.quantity, pastValue: (r.pastPrice || 0) * r.quantity })));
+  try {
+    const portfolio = getPortfolio();
+    let total = 0;
+    for (let i = 0; i < portfolio.length; i++) {
+      const { symbol, quantity } = portfolio[i];
+      try {
+        const price = await fetchHistoricalPrice(symbol, yesterday);
+        if (price != null) total += price * quantity;
+      } catch (_) { /* ignore individual failure */ }
+      if (settings.perCallDelayMs > 0 && i < portfolio.length -1) await sleep(settings.perCallDelayMs);
+    }
+    last24hValue.total = Number(total.toFixed(2));
+  } finally {
+    last24hValue.loading = false;
+    renderSummary(latestRows.map(r => ({ currentValue: (r.currentPrice || 0) * r.quantity, pastValue: (r.pastPrice || 0) * r.quantity })));
   }
 }
 
@@ -566,6 +621,7 @@ async function refreshAll() {
   latestRows = rows;
   renderTable(rows);
   finalizeSummary(rows);
+  ensurePortfolio24hValue();
   // Provide immediate provisional chart using any cached data
   const provisional = quickChartFromRows(rows);
   if (provisional.labels.length) updateChart(provisional);
@@ -601,6 +657,7 @@ async function refreshAll() {
   try { refreshAnalytics(); } catch (e) { console.warn('Analytics refresh failed', e); }
   try { refreshAllocationChart(latestRows); } catch (e) { console.warn('Allocation chart refresh failed', e); }
   try { refreshHistorySnapshots(); } catch (e) { console.warn('History snapshots refresh failed', e); }
+  try { renderSpotPrints(); } catch (_) {}
 }
 
 async function refreshCoin(symbol) {
@@ -625,6 +682,7 @@ async function refreshCoin(symbol) {
   row.statusText = error ? 'error' : `up to date (${hoursAgo(Date.now())}h ago)`;
   updateRowComputed(row);
   finalizeSummary(latestRows);
+  ensurePortfolio24hValue();
   const provisional = quickChartFromRows(latestRows);
   if (provisional.labels.length) updateChart(provisional);
   if (settings.perCallDelayMs > 0) await sleep(settings.perCallDelayMs);
@@ -713,3 +771,84 @@ function initUI() {
 }
 
 export { initUI, refreshAll };
+
+// ---------------------- SPOT PRINTS ---------------------------
+function captureSpotPrint() {
+  // Build current prices map from latestRows (fallback null)
+  const priceMap = {};
+  for (const r of latestRows) {
+    priceMap[r.symbol] = r.currentPrice != null ? r.currentPrice : null;
+  }
+  addPrint(priceMap);
+  renderSpotPrints();
+}
+
+function renderSpotPrints() {
+  if (!els.spotPrintsTbody || !els.spotPrintsThead) return;
+  const prints = listPrints().sort((a,b) => a.ts - b.ts); // chronological
+  const portfolio = getPortfolio();
+  const symbols = portfolio.map(p => p.symbol);
+  // Build header if empty or symbol set changed
+  els.spotPrintsThead.innerHTML = `<tr>
+    <th class="px-2 py-1 text-left">Time</th>
+    <th class="px-2 py-1 text-right">Portfolio €</th>
+    ${symbols.map(s => `<th class='px-2 py-1 text-right'>${s}</th>`).join('')}
+    <th class="px-2 py-1 text-right">Δ €</th>
+    <th class="px-2 py-1 text-right">Δ %</th>
+    <th class="px-2 py-1 text-right">Remove</th>
+  </tr>`;
+  if (!prints.length) {
+    if (els.spotPrintsEmpty) els.spotPrintsEmpty.classList.remove('hidden');
+    els.spotPrintsTbody.innerHTML = '';
+    return;
+  }
+  if (els.spotPrintsEmpty) els.spotPrintsEmpty.classList.add('hidden');
+  let prev = null;
+  const rowsHtml = prints.map(p => {
+    let deltaEUR = null, deltaPct = null;
+    if (prev) {
+      deltaEUR = p.portfolioTotal - prev.portfolioTotal;
+      if (prev.portfolioTotal) deltaPct = (p.portfolioTotal / prev.portfolioTotal - 1) * 100;
+    }
+    const dirCls = deltaEUR == null ? '' : (deltaEUR > 0 ? 'text-bull' : (deltaEUR < 0 ? 'text-bear' : ''));
+    const cellPrices = symbols.map(sym => {
+      const curr = p.prices[sym];
+      let prevVal = prev ? prev.prices[sym] : null;
+      let cls = '';
+      if (prev && curr != null && prevVal != null && curr !== prevVal) {
+        cls = curr > prevVal ? 'text-bull' : 'text-bear';
+      }
+      return `<td class='px-2 py-1 text-right ${cls}'>${curr != null ? curr : '—'}</td>`;
+    }).join('');
+    const timeStr = new Date(p.ts).toLocaleTimeString([], { hour12: false });
+    const deltaEURDisp = deltaEUR == null ? '—' : (deltaEUR >=0 ? '+' : '') + '€' + deltaEUR.toFixed(2);
+    const deltaPctDisp = deltaPct == null ? '—' : (deltaPct >=0 ? '+' : '') + deltaPct.toFixed(2) + '%';
+    const rowHtml = `<tr data-print-id='${p.id}'>
+      <td class='px-2 py-1'>${timeStr}</td>
+      <td class='px-2 py-1 text-right ${dirCls}'>€${p.portfolioTotal.toFixed(2)}</td>
+      ${cellPrices}
+      <td class='px-2 py-1 text-right ${dirCls}'>${deltaEURDisp}</td>
+      <td class='px-2 py-1 text-right ${dirCls}'>${deltaPctDisp}</td>
+      <td class='px-2 py-1 text-right'><button data-del-print='${p.id}' class='text-[10px] text-red-600 hover:underline'>✕</button></td>
+    </tr>`;
+    prev = p;
+    return rowHtml;
+  }).join('');
+  els.spotPrintsTbody.innerHTML = rowsHtml;
+  els.spotPrintsTbody.querySelectorAll('button[data-del-print]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      removePrint(btn.getAttribute('data-del-print'));
+      renderSpotPrints();
+    });
+  });
+}
+
+// Render prints after initial data load
+window.addEventListener('load', () => {
+  try { renderSpotPrints(); } catch(_) {}
+});
+
+// Re-render prints when holdings potentially change symbol set
+window.addEventListener('portfolio-updated', () => {
+  renderSpotPrints();
+});

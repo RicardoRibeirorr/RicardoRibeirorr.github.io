@@ -53,6 +53,7 @@ async function addOrUpdateCoin(symbol, quantity = 1, acquisitionDate = null) {
   }
   state = state.filter(c => c.quantity > 0);
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
 }
 
@@ -60,12 +61,14 @@ function removeCoin(symbol) {
   symbol = normalizeSymbol(symbol);
   state = state.filter(c => c.symbol !== symbol);
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
 }
 
 function clearPortfolio() {
   state = [];
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
 }
 
 async function recordAction(symbol, type, quantity, actionDateOverride = null) {
@@ -143,6 +146,7 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
   }
   entry.actions.push(action);
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
 }
 
@@ -205,6 +209,7 @@ function deleteAction(symbol, actionId) {
   }
   recomputeEntryDerived(entry);
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
 }
 
@@ -318,6 +323,7 @@ function updateAcquisitionDate(symbol, dateStr) {
     entry.acquisitionDate = null;
   }
   savePortfolio(state);
+    try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
 }
 // Bulk replace portfolio (used for import)
