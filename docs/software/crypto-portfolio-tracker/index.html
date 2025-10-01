@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Portfolio Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='140'>₿</text></svg>"> 
+  <!-- Tailwind via CDN (sufficient for this lightweight project) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bull: '#16a34a',
+            bear: '#dc2626'
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Chart.js with corrected SRI hash; previous hash was invalid causing the script to be blocked -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-0q+JdOlScWOHcunpUk21uab1jW7C1deBQARHtKMcaB4=" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://api.coingecko.com" />
+  <meta name="description" content="Simple crypto portfolio tracker using CoinGecko API" />
+</head>
+<body class="h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+  <div class="min-h-full flex flex-col">
+    <header class="sticky top-0 z-10 backdrop-blur bg-white/80 dark:bg-gray-800/70 border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
+        <h1 class="text-2xl font-bold tracking-tight">Crypto Portfolio</h1>
+        <div class="ml-auto flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <span>Dark</span>
+            <input id="darkModeToggle" type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" />
+          </label>
+          <button id="settingsToggleBtn" class="text-xs px-2 py-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">Settings</button>
+          <button id="apiLogToggleBtn" class="text-xs px-2 py-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">API Log</button>
+          <a href="https://www.coingecko.com" target="_blank" rel="noopener" class="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Data by CoinGecko</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 space-y-10">
+      <!-- Add Coin Full-Width Card -->
+      <section>
+        <div class="p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200/60 dark:ring-gray-700/60">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <h2 class="text-xl font-semibold">Record Action (Buy / Sell)</h2>
+            <p class="text-xs md:text-sm text-gray-500 max-w-xl">Log a BUY or SELL action for a coin. Prices snapshot automatically. Sells must match the previous buy quantity.</p>
+          </div>
+          <form id="addCoinForm" class="grid gap-6 md:grid-cols-5 lg:grid-cols-6 items-end">
+            <div class="md:col-span-2 lg:col-span-2">
+              <label class="block text-sm font-medium mb-1" for="symbolInput">Coin (type to search)</label>
+              <div class="flex gap-2">
+                <input id="symbolInput" list="coinOptions" type="text" required placeholder="e.g. BTC" class="flex-1 rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 uppercase" autocomplete="off" />
+                <button type="button" id="refreshCoinListBtn" class="px-3 py-2 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">Refresh List</button>
+              </div>
+              <div class="flex items-center gap-3 mt-2">
+                <label class="flex items-center gap-1 text-[11px] cursor-pointer select-none"><input id="popularOnlyToggle" type="checkbox" checked class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" /> <span>Popular only</span></label>
+              </div>
+              <datalist id="coinOptions"></datalist>
+            </div>
+            <div style="padding-bottom: 1.3rem;">
+              <label class="block text-sm font-medium mb-1" for="actionType">Action</label>
+              <select id="actionType" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+              </select>
+            </div>
+            <div style="padding-bottom: 1.3rem;">
+              <label class="block text-sm font-medium mb-1" for="quantityInput">Quantity</label>
+              <input id="quantityInput" type="number" step="0.00000001" min="0" value="1" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="comparisonDate">Purchase Date</label>
+              <input id="comparisonDate" type="date" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
+              <p class="mt-1 text-xs text-gray-500">Defaults to 30 days ago.</p>
+            </div>
+            <div class="md:col-span-1 flex md:block" style="padding-bottom: 1.5rem;">
+              <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500">Record</button>
+            </div>
+            <p id="addCoinError" class="hidden text-sm text-red-600 md:col-span-5 lg:col-span-6 -mt-4"></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- Portfolio Overview Card -->
+      <section>
+        <div class="p-0 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200/60 dark:ring-gray-700/60 overflow-hidden">
+          <div class="flex flex-col md:flex-row">
+            <!-- Summary Panel -->
+            <div class="w-full md:w-5/12 xl:w-4/12 p-6 space-y-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
+              <div class="flex items-center gap-3">
+                <h2 class="text-lg font-semibold">Portfolio Summary</h2>
+                <button id="forceReloadBtn" title="Clears all caches & reloads fresh data" class="ml-auto inline-flex justify-center items-center gap-2 rounded-md bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-800/60 text-red-700 dark:text-red-300 font-medium px-3 py-1.5 text-xs">Force Reload</button>
+              </div>
+              <div id="portfolioSummary" class="text-sm grid grid-cols-2 gap-x-4 gap-y-1"></div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button id="exportPortfolioBtn" class="text-xs rounded-md bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 font-medium">Export JSON</button>
+                <button id="importPortfolioBtn" class="text-xs rounded-md bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 font-medium">Import JSON</button>
+                <input id="importFile" type="file" accept="application/json" class="hidden" />
+                <button id="clearPortfolioBtn" class="text-xs text-red-600 hover:underline ml-auto">Clear</button>
+              </div>
+              <div class="text-[11px] text-gray-500 space-y-1">
+                <p>Prices cached up to 6h. Per-coin refresh forces update.</p>
+                <p>Historical & chart data may lag. Not financial advice.</p>
+              </div>
+            </div>
+            <!-- Chart Panel -->
+            <div class="flex-1 p-6 md:p-8">
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Total Value (EUR)</h3>
+              <div class="h-72 relative">
+                <canvas id="portfolioChart" height="250" aria-label="Portfolio value chart" role="img"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold">Holdings</h2>
+        </div>
+        <p class="small text-gray-500">Holdings may take a while to load completely and may fail since the open API does not allow constant loading. You can refresh individually.</p>
+        <div class="overflow-x-auto rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 shadow-sm bg-white dark:bg-gray-800">
+          <table class="min-w-full text-sm" id="portfolioTable">
+            <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200">
+              <tr>
+                <th class="px-4 py-2 text-left font-medium">Coin</th>
+                <th class="px-4 py-2 text-right font-medium">Quantity</th>
+                <th class="px-4 py-2 text-right font-medium">Current (EUR)</th>
+                <th class="px-4 py-2 text-right font-medium">On Date (EUR)</th>
+                <th class="px-4 py-2 text-right font-medium">Δ (EUR)</th>
+                <th class="px-4 py-2 text-right font-medium">Δ (%)</th>
+                <th class="px-4 py-2 text-left font-medium">Status</th>
+                <th class="px-4 py-2 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="portfolioTableBody" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+          </table>
+          <p id="emptyState" class="p-6 text-center text-sm text-gray-500">No coins yet. Add one above.</p>
+        </div>
+      </section>
+
+      <!-- Analytics Section -->
+      <section id="analyticsSection" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold">Analytics</h2>
+          <div class="flex gap-2">
+            <select id="analyticsBaseDate" class="rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xs px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500" title="Base date for percent change (defaults to earliest)">
+              <option value="auto" selected>Auto Base</option>
+            </select>
+            <select id="analyticsSmoothing" class="rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xs px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500" title="Optional smoothing window">
+              <option value="0" selected>No Smooth</option>
+              <option value="3">3d MA</option>
+              <option value="7">7d MA</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Performance Chart -->
+          <div class="flex-1 p-4 md:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Performance (% Change)</h3>
+            <div class="h-80 relative">
+              <canvas id="performanceChart" aria-label="Performance chart" role="img"></canvas>
+            </div>
+            <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">Shows percent change from first available price (or chosen base) for each asset and the combined portfolio. Hidden datasets can be toggled by clicking legend labels.</p>
+          </div>
+          <!-- Allocation & P/L Bar Chart (narrow) -->
+            <div class="w-full lg:w-80 p-4 md:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Allocation & P/L</h3>
+              <div class="h-[460px] overflow-y-auto pr-1" id="allocationChartContainer">
+                <canvas id="allocationChart" aria-label="Allocation chart" role="img" height="430"></canvas>
+              </div>
+              <p class="mt-2 text-[10px] leading-snug text-gray-500 dark:text-gray-400">Stacked bars: grey = cost basis; green extension = unrealized gain; red segment = unrealized loss. Bar length scaled to cost basis share of portfolio. Scroll if many assets.</p>
+            </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="px-4 py-6 mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
+      Built with CoinGecko API & Chart.js • Data is public and may be delayed • Not financial advice
+    </footer>
+  </div>
+
+  <script type="module" src="./src/js/main.js"></script>
+  <!-- API Log Panel -->
+  <div id="apiLogPanel" class="hidden fixed top-16 right-4 w-96 max-h-[65vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-4 flex flex-col gap-2">
+    <div class="flex items-center mb-1">
+      <h3 class="font-semibold text-sm">API Calls</h3>
+      <button id="refreshBtn" class="mr-2 inline-flex justify-center items-center gap-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium px-2 py-1 text-[11px] ml-2">Reload All</button>
+      <button id="apiLogCloseBtn" class="ml-auto text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
+    </div>
+    <div id="apiLogList" class="font-mono whitespace-pre-wrap leading-relaxed"></div>
+  </div>
+  <!-- Settings Panel -->
+  <div id="settingsPanel" class="hidden fixed top-16 right-4 w-80 max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-5 flex flex-col gap-4">
+    <div class="flex items-center mb-1">
+      <h3 class="font-semibold text-sm">Settings</h3>
+      <button id="settingsCloseBtn" class="ml-auto text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
+    </div>
+    <p class="text-[11px] text-gray-500">Adjust cache freshness & API pacing. Lower delay = faster but higher 429 risk.</p>
+    <form id="settingsForm" class="space-y-4">
+      <div class="flex flex-col gap-1">
+        <label class="font-medium flex items-center gap-1" for="settingRefreshHours">Cache Freshness (hours)
+          <span title="Hours current & historical prices are considered fresh before refetch." class="cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">?</span>
+        </label>
+        <input id="settingRefreshHours" type="number" min="1" max="72" step="1" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
+        <p class="text-[10px] text-gray-500">Default 6h</p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium flex items-center gap-1" for="settingApiDelay">API Delay (seconds)
+          <span title="Delay between sequential API calls to avoid 429 errors." class="cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">?</span>
+        </label>
+        <input id="settingApiDelay" type="number" min="0" max="10" step="0.5" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
+        <p class="text-[10px] text-gray-500">Default 2s</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="applySettingsBtn" type="button" class="inline-flex justify-center items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 text-xs">Apply</button>
+        <span id="settingsStatus" class="text-[10px] text-gray-500"></span>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
