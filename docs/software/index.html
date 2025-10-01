@@ -1,0 +1,286 @@
+<script>
+// =============================
+// Configure your software cards
+// =============================
+// Edit / add objects to the SOFTWARES array below.
+// Fields:
+//  title: string (required)
+//  description: string (short text, markdown not parsed)
+//  image: string (path or full URL; can be '' for placeholder)
+//  url: string (target link opened in same tab)
+//  tags: array of strings (used for filtering)
+//  highlight: boolean (optional; if true gets a special style)
+// Feel free to remove example entries.
+const SOFTWARES = [
+  {
+    title: 'Crypto Portfolio Tracker',
+    description: 'Track your cryptocurrency investments and view real-time market data.',
+    image: 'https://raw.githubusercontent.com/github/explore/main/topics/crypto/crypto.png',
+    url: 'crypto-portfolio-tracker/',
+    tags: ['finance','cryptocurrency','tracker'],
+    highlight: true,
+  }
+];
+</script>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Tools</title>
+  <meta name="color-scheme" content="dark light" />
+  <script>
+    // Tailwind on-the-fly configuration before loading CDN
+    window.tailwind = {
+      config: {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: { display: ['"DM Sans"', 'system-ui', 'sans-serif'] },
+            colors: {
+              brand: {
+                50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',
+                500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e',950:'#082f49'
+              }
+            },
+            boxShadow: { 'glow': '0 0 0 1px rgba(255,255,255,0.05),0 4px 24px -4px rgba(0,200,255,0.25)' },
+            animation: {
+              'fade-in': 'fade-in 0.6s ease forwards',
+              'scale-in': 'scale-in 0.4s cubic-bezier(.45,.05,.55,.95) forwards'
+            },
+            keyframes: {
+              'fade-in': { '0%': { opacity: 0, transform: 'translateY(12px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+              'scale-in': { '0%': { opacity: 0, transform: 'scale(.95)' }, '100%': { opacity: 1, transform: 'scale(1)' } }
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Scrollbar styling (webkit) */
+    *::-webkit-scrollbar { width: 10px; height: 10px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#1e293b,#0f172a); border-radius: 20px; border:2px solid #0f172a; }
+    .card-gradient { background: radial-gradient(circle at 30% 20%, rgba(56,189,248,0.15), rgba(56,189,248,0) 70%); }
+    .glass { backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-200 font-display selection:bg-brand-500/30 selection:text-brand-100 antialiased">
+
+  <!-- Accessibility skip link -->
+  <a href="#tools" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:bg-brand-600 focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip to tools</a>
+
+  <!-- Top bar / controls -->
+  <div class="mx-auto max-w-7xl px-4 pt-6 pb-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div class="flex items-center gap-3">
+      <div class="relative group">
+        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white text-xl font-bold shadow-lg shadow-brand-500/30 ring-1 ring-inset ring-white/10">⚙️</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight bg-gradient-to-r from-brand-200 via-white to-brand-200 bg-clip-text text-transparent">My Utility Suite</h1>
+        <p class="text-sm text-slate-400">Handy little tools & experiments</p>
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 md:items-center md:justify-end md:ml-auto w-full md:w-auto">
+      <div class="relative flex-1 md:flex-none">
+        <input id="searchInput" type="text" placeholder="Search tools..." class="w-full md:w-72 rounded-xl bg-slate-800/60 focus:bg-slate-800/80 transition-colors ring-1 ring-white/10 focus:ring-brand-500/60 px-4 py-2.5 text-sm placeholder:text-slate-500 outline-none" />
+        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">Ctrl + K</span>
+      </div>
+      <button id="themeToggle" class="group relative overflow-hidden inline-flex items-center justify-center rounded-xl h-11 px-4 text-sm font-medium bg-slate-800/60 hover:bg-slate-800/80 ring-1 ring-white/10 transition-colors">
+        <span class="flex items-center gap-2">
+          <span class="theme-icon-sun hidden">☀️</span>
+          <span class="theme-icon-moon">🌙</span>
+          <span class="text-slate-300 group-hover:text-white transition-colors">Theme</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tag filters -->
+  <div class="mx-auto max-w-7xl px-4 mb-4" id="tagFilterBar" aria-label="Filter tools by tag">
+    <div class="flex flex-wrap gap-2"></div>
+  </div>
+
+  <!-- Tools grid -->
+  <main id="tools" class="mx-auto max-w-7xl px-4 pb-20">
+    <div id="cardsContainer" class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"></div>
+    <p id="emptyState" class="hidden text-center text-slate-500 mt-16">No tools match your search/filter.</p>
+  </main>
+
+  <!-- Templates (JS clones these) -->
+  <template id="cardTemplate">
+    <a class="group relative flex flex-col rounded-2xl border border-white/5 bg-slate-900/40 hover:border-brand-400/40 transition-all duration-300 overflow-hidden ring-1 ring-black/40 hover:ring-brand-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400" target="_self" rel="noopener">
+      <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 card-gradient"></div>
+      <div class="relative p-5 flex flex-col gap-4 grow">
+        <div class="relative w-full aspect-video rounded-xl overflow-hidden ring-1 ring-inset ring-white/10 bg-slate-800/50 flex items-center justify-center">
+          <img data-image alt="" class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_70%)] mix-blend-overlay pointer-events-none"></div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <h2 data-title class="text-lg font-semibold tracking-tight text-white"></h2>
+          <p data-description class="text-sm leading-snug text-slate-400 line-clamp-3"></p>
+        </div>
+        <div class="mt-auto flex flex-wrap gap-1.5" data-tags></div>
+      </div>
+      <div class="relative px-5 pb-5 pt-2 flex items-center justify-between text-xs text-slate-400/80">
+        <span class="inline-flex items-center gap-1 group-hover:text-brand-200 transition-colors">Open <span aria-hidden>→</span></span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity">Tool</span>
+      </div>
+      <span class="pointer-events-none absolute inset-0 rounded-2xl shadow-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
+    </a>
+  </template>
+
+  <template id="tagTemplate">
+    <button class="tag-btn px-3 py-1 text-xs rounded-full bg-slate-800/60 text-slate-300 hover:text-white hover:bg-slate-700/70 ring-1 ring-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 data-[active=true]:bg-brand-600 data-[active=true]:text-white data-[active=true]:ring-brand-400/60">tag</button>
+  </template>
+
+  <noscript>
+    <div class="max-w-xl mx-auto mt-20 text-center text-red-300">JavaScript is required to render the tool cards.</div>
+  </noscript>
+
+  <script>
+    // ============ Utility Functions ============
+    const $ = (sel, ctx=document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+    const createEl = (tag, cls) => { const el = document.createElement(tag); if(cls) el.className = cls; return el; };
+
+    // ============ Theme Handling ============
+    const root = document.documentElement;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    function applyStoredTheme() {
+      const saved = localStorage.getItem('theme');
+      const isDark = saved ? saved === 'dark' : prefersDark.matches;
+      root.classList.toggle('dark', isDark);
+      updateThemeButton();
+    }
+    function toggleTheme() {
+      const nowDark = !root.classList.contains('dark');
+      root.classList.toggle('dark', nowDark);
+      localStorage.setItem('theme', nowDark ? 'dark' : 'light');
+      updateThemeButton();
+    }
+    function updateThemeButton() {
+      const darkMode = root.classList.contains('dark');
+      $('.theme-icon-moon').style.display = darkMode ? 'none' : 'inline';
+      $('.theme-icon-sun').style.display = darkMode ? 'inline' : 'none';
+    }
+    prefersDark.addEventListener('change', () => { if(!localStorage.getItem('theme')) applyStoredTheme(); });
+
+    // ============ Render Logic ============
+    const cardsContainer = $('#cardsContainer');
+    const cardTpl = $('#cardTemplate');
+    const tagTpl = $('#tagTemplate');
+    const searchInput = $('#searchInput');
+    const emptyState = $('#emptyState');
+    const tagFilterBar = $('#tagFilterBar > div');
+
+    // Collect unique tags
+    const allTags = [...new Set(SOFTWARES.flatMap(s => s.tags || []))].sort();
+    let activeTag = null;
+
+    function renderTags() {
+      tagFilterBar.innerHTML = '';
+      if(!allTags.length) { tagFilterBar.parentElement.classList.add('hidden'); return; }
+      // Add 'All'
+      const allBtn = tagTpl.content.firstElementChild.cloneNode(true);
+      allBtn.textContent = 'All';
+      allBtn.dataset.active = !activeTag;
+      allBtn.addEventListener('click', () => { activeTag = null; renderTags(); renderCards(); });
+      tagFilterBar.appendChild(allBtn);
+      allTags.forEach(tag => {
+        const btn = tagTpl.content.firstElementChild.cloneNode(true);
+        btn.textContent = tag;
+        btn.dataset.active = activeTag === tag;
+        btn.addEventListener('click', () => { activeTag = activeTag === tag ? null : tag; renderTags(); renderCards(); });
+        tagFilterBar.appendChild(btn);
+      });
+    }
+
+    function matchesFilters(software, q) {
+      const tagOk = !activeTag || (software.tags || []).includes(activeTag);
+      if(!q) return tagOk;
+      const hay = (software.title + ' ' + software.description + ' ' + (software.tags||[]).join(' ')).toLowerCase();
+      return tagOk && hay.includes(q.toLowerCase());
+    }
+
+    function createTagPill(text) {
+      const pill = createEl('span','inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800/60 text-[10px] font-medium tracking-wide text-slate-400 ring-1 ring-white/5');
+      pill.textContent = text;
+      return pill;
+    }
+
+    function renderCards() {
+      const q = searchInput.value.trim();
+      cardsContainer.innerHTML = '';
+      const filtered = SOFTWARES.filter(s => matchesFilters(s, q));
+      if(!filtered.length) { emptyState.classList.remove('hidden'); return; } else { emptyState.classList.add('hidden'); }
+      filtered.forEach((s, idx) => {
+        const node = cardTpl.content.firstElementChild.cloneNode(true);
+        node.href = s.url;
+        node.style.animationDelay = (idx * 40)+'ms';
+        node.classList.add('opacity-0');
+        const img = node.querySelector('[data-image]');
+        if(s.image) img.src = s.image; else {
+          img.src = 'data:image/svg+xml;charset=utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225"><rect width="400" height="225" rx="16" fill="%230f172a"/><text x="50%" y="50%" fill="%235E7390" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" dominant-baseline="middle">${s.title}</text></svg>`);
+        }
+        node.querySelector('[data-title]').textContent = s.title;
+        node.querySelector('[data-description]').textContent = s.description;
+        const tagWrap = node.querySelector('[data-tags]');
+        (s.tags||[]).forEach(t => tagWrap.appendChild(createTagPill(t)));
+        if(s.highlight) {
+          node.classList.add('border-brand-500/50','shadow-glow');
+          node.querySelector('[data-title]').classList.add('bg-gradient-to-r','from-brand-300','to-brand-100','bg-clip-text','text-transparent');
+        }
+        cardsContainer.appendChild(node);
+      });
+      observeCards();
+    }
+
+    // ============ Intersection Observer for fade-in ============
+    let observer;
+    function observeCards(){
+      if(observer) observer.disconnect();
+      observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if(e.isIntersecting){
+            e.target.classList.add('animate-fade-in');
+            e.target.classList.remove('opacity-0');
+            observer.unobserve(e.target);
+          }
+        });
+      }, { threshold: .1, rootMargin: '0px 0px -10% 0px' });
+      $$('#cardsContainer > a').forEach(card => observer.observe(card));
+    }
+
+    // ============ Keyboard Shortcuts ============
+    window.addEventListener('keydown', e => {
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchInput.focus(); }
+      if(e.key === 'Escape') { searchInput.blur(); }
+    });
+
+    // ============ Event Bindings ============
+    $('#themeToggle').addEventListener('click', toggleTheme);
+    searchInput.addEventListener('input', () => renderCards());
+
+    // ============ Init ============
+    applyStoredTheme();
+    renderTags();
+    renderCards();
+
+    // Focus ring for keyboard navigation
+    document.addEventListener('keydown', e => { if(e.key === 'Tab') document.body.classList.add('outline-focused'); });
+  </script>
+
+  <!-- Decorative background -->
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand-600/30 rounded-full mix-blend-overlay blur-3xl opacity-30 animate-pulse"></div>
+    <div class="absolute bottom-0 right-0 w-[42rem] h-[42rem] bg-brand-400/20 rounded-full mix-blend-overlay blur-3xl opacity-20"></div>
+  </div>
+
+</body>
+</html>
