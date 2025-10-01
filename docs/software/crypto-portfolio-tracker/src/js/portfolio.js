@@ -298,6 +298,19 @@ async function backfillMissingActionPrices(cutoffDays = 360) {
 }
 
 export { getPortfolio, addOrUpdateCoin, removeCoin, clearPortfolio, recordAction, deleteAction, backfillMissingActionPrices };
+// Update acquisition date for a symbol and persist
+function updateAcquisitionDate(symbol, dateStr) {
+  symbol = normalizeSymbol(symbol);
+  const entry = state.find(c => c.symbol === symbol);
+  if (!entry) return getPortfolio();
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    entry.acquisitionDate = dateStr;
+  } else {
+    entry.acquisitionDate = null;
+  }
+  savePortfolio(state);
+  return getPortfolio();
+}
 // Bulk replace portfolio (used for import)
 function setPortfolio(items) {
   if (!Array.isArray(items)) throw new Error('Invalid portfolio format');
@@ -337,3 +350,4 @@ function setPortfolio(items) {
 }
 
 export { setPortfolio };
+export { updateAcquisitionDate };

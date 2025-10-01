@@ -107,8 +107,10 @@ function populateBaseDateSelector(labels, current) {
 function hookAnalyticsControls() {
   const baseSel = document.getElementById('analyticsBaseDate');
   const smoothSel = document.getElementById('analyticsSmoothing');
+  const metricSel = document.getElementById('analyticsMetric');
   if (baseSel) baseSel.addEventListener('change', () => renderPerformanceChart(baseSel.value, smoothSel?.value || 0));
   if (smoothSel) smoothSel.addEventListener('change', () => renderPerformanceChart(baseSel?.value || 'auto', smoothSel.value));
+  if (metricSel) metricSel.addEventListener('change', () => renderPerformanceChart(baseSel?.value || 'auto', smoothSel?.value || 0));
 }
 
 export function initAnalytics() {

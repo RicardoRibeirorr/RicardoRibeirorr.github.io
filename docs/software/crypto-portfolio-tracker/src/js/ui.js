@@ -1,7 +1,7 @@
 // ui.js - DOM rendering and event listeners
 
 import { fetchCurrentPrices, fetchHistoricalPrice, fetchPortfolioTimeline, fetchCoinList, getApiLog } from './api.js';
-import { getPortfolio, addOrUpdateCoin, removeCoin, clearPortfolio, setPortfolio, recordAction, deleteAction, backfillMissingActionPrices } from './portfolio.js';
+import { getPortfolio, addOrUpdateCoin, removeCoin, clearPortfolio, setPortfolio, recordAction, deleteAction, backfillMissingActionPrices, updateAcquisitionDate } from './portfolio.js';
 import { loadComparisonDate, saveComparisonDate, loadPriceCache, savePriceCache, loadTheme, saveTheme, saveCoinListCache, saveMarketChartCache, loadSettings, saveSettings } from './storage.js';
 import { updateChart } from './chart.js';
 import { showToast } from './toast.js';
@@ -356,9 +356,9 @@ function renderTable(rows) {
           <input type="date" data-acq="${row.symbol}" value="${acqDate || ''}" class="block w-full rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-[11px] px-1 py-0.5" />
         </div>
       </td>
-      <td class="px-4 py-2 text-right">${row.quantity}</td>
-      <td class="px-4 py-2 text-right" data-cell="currentPrice">${row.currentPrice != null ? '€' + row.currentPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
-      <td class="px-4 py-2 text-right" data-cell="pastPrice">${row.pastPrice != null ? '€' + row.pastPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+  <td class="px-4 py-2 text-right">${row.quantity}</td>
+  <td class="px-4 py-2 text-right" data-cell="pastPrice" title="Price on ${acqDate}">${row.pastPrice != null ? '€' + row.pastPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+  <td class="px-4 py-2 text-right" data-cell="currentPrice">${row.currentPrice != null ? '€' + row.currentPrice.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
       <td class="px-4 py-2 text-right ${diffCls}" data-cell="diff">${row.currentPrice != null && row.pastPrice != null ? (diff >= 0 ? '+' : '') + '€' + diff.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
       <td class="px-4 py-2 text-right ${diffCls}" data-cell="pct">${row.currentPrice != null && row.pastPrice != null ? (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</td>
       <td class="px-4 py-2 text-left" data-cell="status">${statusText}</td>
@@ -430,10 +430,11 @@ function renderTable(rows) {
       const port = getPortfolio();
       const entry = port.find(p => p.symbol === sym);
       if (entry) {
-        entry.acquisitionDate = inp.value || null;
+        updateAcquisitionDate(sym, inp.value || null);
         // Invalidate historical cache for that symbol & re-fetch just that row
         const row = latestRows.find(r => r.symbol === sym);
         if (row) {
+          row.acquisitionDate = inp.value || (els.comparisonDate ? els.comparisonDate.value : defaultComparisonDate());
           row.pastPrice = null; row.statusText = '(loading)'; updateRowComputed(row);
           await refreshCoin(sym);
         }

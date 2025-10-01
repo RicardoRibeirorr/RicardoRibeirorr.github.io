@@ -131,8 +131,8 @@
               <tr>
                 <th class="px-4 py-2 text-left font-medium">Coin</th>
                 <th class="px-4 py-2 text-right font-medium">Quantity</th>
-                <th class="px-4 py-2 text-right font-medium">Current (EUR)</th>
                 <th class="px-4 py-2 text-right font-medium">On Date (EUR)</th>
+                <th class="px-4 py-2 text-right font-medium">Current (EUR)</th>
                 <th class="px-4 py-2 text-right font-medium">Δ (EUR)</th>
                 <th class="px-4 py-2 text-right font-medium">Δ (%)</th>
                 <th class="px-4 py-2 text-left font-medium">Status</th>
@@ -149,7 +149,7 @@
       <section id="analyticsSection" class="space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold">Analytics</h2>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
             <select id="analyticsBaseDate" class="rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-xs px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500" title="Base date for percent change (defaults to earliest)">
               <option value="auto" selected>Auto Base</option>
             </select>
@@ -175,7 +175,7 @@
               <div class="h-[460px] overflow-y-auto pr-1" id="allocationChartContainer">
                 <canvas id="allocationChart" aria-label="Allocation chart" role="img" height="430"></canvas>
               </div>
-              <p class="mt-2 text-[10px] leading-snug text-gray-500 dark:text-gray-400">Stacked bars: grey = cost basis; green extension = unrealized gain; red segment = unrealized loss. Bar length scaled to cost basis share of portfolio. Scroll if many assets.</p>
+              <p class="mt-2 text-[10px] leading-snug text-gray-500 dark:text-gray-400">Stacked bar = Cost basis (grey) + unrealized gain (green) or loss (red). Tooltip also shows realized P/L and allocation %.</p>
             </div>
         </div>
       </section>
