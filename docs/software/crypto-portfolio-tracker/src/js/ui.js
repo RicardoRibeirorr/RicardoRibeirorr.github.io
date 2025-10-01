@@ -1,6 +1,6 @@
 // ui.js - DOM rendering and event listeners
 
-import { fetchCurrentPrices, fetchHistoricalPrice, fetchPortfolioTimeline, fetchCoinList, getApiLog } from './api.js';
+import { fetchCurrentPrices, fetchHistoricalPrice, fetchPortfolioTimeline, fetchCoinList, getApiLog, fetchCoinImagesForSymbols, getCachedCoinImage } from './api.js';
 import { getPortfolio, addOrUpdateCoin, removeCoin, clearPortfolio, setPortfolio, recordAction, deleteAction, backfillMissingActionPrices, updateAcquisitionDate } from './portfolio.js';
 import { loadComparisonDate, saveComparisonDate, loadPriceCache, savePriceCache, loadTheme, saveTheme, saveCoinListCache, saveMarketChartCache, loadSettings, saveSettings } from './storage.js';
 import { updateChart } from './chart.js';
@@ -368,6 +368,33 @@ function setCachedHistorical(symbol, dateStr, price) { ensureSymbolCache(symbol)
 function renderTable(rows) {
   els.tableBody.innerHTML = '';
   renderEmptyState(!rows.length);
+  // Pre-fetch coin images (best effort, non-blocking for initial synchronous render) then patch cells
+  const symbols = rows.map(r => r.symbol);
+  fetchCoinImagesForSymbols(symbols).then(imgMap => {
+    rows.forEach(r => {
+      const tr = els.tableBody.querySelector(`tr[data-symbol="${r.symbol}"]`);
+      if (!tr) return;
+      const imgEl = tr.querySelector('img[data-coin-img]');
+      const cached = getCachedCoinImage(r.symbol);
+      const src = imgMap[r.symbol] || cached;
+      if (imgEl && src && imgEl.getAttribute('data-loaded') !== '1') {
+        imgEl.src = src;
+        imgEl.setAttribute('data-loaded','1');
+      }
+    });
+  }).catch(()=>{
+    // Even if batch fetch fails, try populate with any individual cached ones (from historical calls)
+    rows.forEach(r => {
+      const tr = els.tableBody.querySelector(`tr[data-symbol="${r.symbol}"]`);
+      if (!tr) return;
+      const imgEl = tr.querySelector('img[data-coin-img]');
+      const cached = getCachedCoinImage(r.symbol);
+      if (imgEl && cached && imgEl.getAttribute('data-loaded') !== '1') {
+        imgEl.src = cached;
+        imgEl.setAttribute('data-loaded','1');
+      }
+    });
+  });
   for (const row of rows) {
     const tr = document.createElement('tr');
     tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors';
@@ -382,10 +409,15 @@ function renderTable(rows) {
   const netQty = getPortfolio().find(p => p.symbol === row.symbol)?.quantity || 0;
   const nextAction = netQty > 0 ? 'SELL' : 'BUY';
     const realizedTotal = actions.filter(a => a.realizedProfit != null).reduce((s,a)=>s+a.realizedProfit,0);
+    const imgUrl = getCachedCoinImage(row.symbol) || '';
     tr.innerHTML = `
       <td class="px-4 py-2 font-medium" title="${addedInfo}\nAdded: ${row.addedAt || '—'}">
         <div class="flex flex-col gap-1">
-          <span>${row.symbol} <span class="ml-1 inline-block text-[10px] px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Next: ${nextAction}</span></span>
+          <span class="flex items-center gap-2">
+            <img data-coin-img src="${imgUrl}" alt="${row.symbol} logo" class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 object-contain" />
+            <span>${row.symbol}</span>
+            <span class="inline-block text-[10px] px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Next: ${nextAction}</span>
+          </span>
           <input type="date" data-acq="${row.symbol}" value="${acqDate || ''}" class="block w-full rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-[11px] px-1 py-0.5" />
         </div>
       </td>

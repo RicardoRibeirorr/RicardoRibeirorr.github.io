@@ -8,6 +8,7 @@ const cache = {
   currentPrices: new Map(), // key: symbol => { price, ts }
   historicalPrice: new Map(), // key: symbol|date => { price, ts }
   marketChart: new Map(), // key: symbol|days => { prices, ts }
+  coinImages: new Map(), // key: symbol => { url, ts }
 };
 
 const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes for current prices
@@ -56,7 +57,7 @@ async function fetchJSON(url, retry = 1, metaType = 'raw') {
   }
 }
 
-import { loadCoinListCache, saveCoinListCache, loadMarketChartCache, saveMarketChartCache } from './storage.js';
+import { loadCoinListCache, saveCoinListCache, loadMarketChartCache, saveMarketChartCache, loadCoinImagesCache, saveCoinImagesCache } from './storage.js';
 
 const COINLIST_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -125,6 +126,61 @@ async function fetchCurrentPrices(symbols) {
   return result;
 }
 
+// ---------------- Coin Images (logos) with persistence -----------------
+let persistedCoinImages = null;
+function ensureCoinImagesLoaded() {
+  if (persistedCoinImages !== null) return;
+  const loaded = loadCoinImagesCache();
+  persistedCoinImages = loaded && typeof loaded === 'object' ? loaded : {};
+  for (const [sym, url] of Object.entries(persistedCoinImages)) {
+    if (typeof url === 'string' && url) {
+      cache.coinImages.set(sym.toUpperCase(), { url, ts: 0 });
+    }
+  }
+}
+function persistCoinImages() {
+  if (persistedCoinImages === null) ensureCoinImagesLoaded();
+  const obj = { ...(persistedCoinImages || {}) };
+  let changed = false;
+  for (const [sym, data] of cache.coinImages.entries()) {
+    if (data?.url && !obj[sym]) { obj[sym] = data.url; changed = true; }
+  }
+  if (changed) { saveCoinImagesCache(obj); persistedCoinImages = obj; }
+}
+async function fetchCoinImagesForSymbols(symbols) {
+  ensureCoinImagesLoaded();
+  const unique = [...new Set(symbols.map(s => s.toUpperCase()))];
+  const need = [];
+  const symbolIdMap = await resolveSymbols(unique);
+  for (const sym of unique) {
+    if (!cache.coinImages.get(sym)) need.push(sym);
+  }
+  if (!need.length) {
+    const out = {}; for (const s of unique) { const e = cache.coinImages.get(s); if (e) out[s] = e.url; }
+    return out;
+  }
+  const idsNeeded = need.map(s => symbolIdMap.get(s)).filter(Boolean);
+  if (!idsNeeded.length) return {};
+  const url = `${COINGECKO_BASE}/coins/markets?vs_currency=eur&ids=${encodeURIComponent(idsNeeded.join(','))}&per_page=${idsNeeded.length}`;
+  const json = await fetchJSON(url, 1, 'coinImages');
+  const idToSymbol = new Map();
+  for (const [sym, id] of symbolIdMap.entries()) idToSymbol.set(id, sym);
+  for (const item of json) {
+    const sym = idToSymbol.get(item.id);
+    if (sym) {
+      cache.coinImages.set(sym, { url: item.image, ts: now() });
+    }
+  }
+  persistCoinImages();
+  const out = {}; for (const s of unique) { const e = cache.coinImages.get(s); if (e) out[s] = e.url; }
+  return out;
+}
+function getCachedCoinImage(symbol) {
+  ensureCoinImagesLoaded();
+  const e = cache.coinImages.get(symbol.toUpperCase());
+  return e ? e.url : null;
+}
+
 function dateToDDMMYYYY(dateStr) {
   const [y, m, d] = dateStr.split('-');
   return `${d}-${m}-${y}`;
@@ -141,6 +197,14 @@ async function fetchHistoricalPrice(symbol, dateStr) {
   const url = `${COINGECKO_BASE}/coins/${id}/history?date=${ddmmyyyy}&localization=false`;
   const json = await fetchJSON(url, 1, 'historicalPrice');
   const price = json?.market_data?.current_price?.eur ?? null;
+  // Opportunistically capture image (CoinGecko history endpoint returns image.{thumb,small,large})
+  try {
+    const img = json?.image?.small || json?.image?.thumb || json?.image?.large;
+    if (img && !cache.coinImages.get(symbol.toUpperCase())) {
+      cache.coinImages.set(symbol.toUpperCase(), { url: img, ts: now() });
+      persistCoinImages();
+    }
+  } catch (_) { /* ignore image extraction issues */ }
   cache.historicalPrice.set(key, { price, ts: now() });
   return price;
 }
@@ -235,6 +299,8 @@ export {
   fetchPortfolioTimeline,
   fetchMarketChart,
   getApiLog,
+  fetchCoinImagesForSymbols,
+  getCachedCoinImage,
 };
 
 // --- Performance (percent change) timeline including per symbol ---
