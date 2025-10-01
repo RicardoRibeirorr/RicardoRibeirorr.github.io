@@ -8,6 +8,7 @@ import { showToast } from './toast.js';
 import { renderMiniChartsForPortfolio, clearMiniCharts, renderMiniChart } from './miniCharts.js';
 import { initAnalytics, refreshAnalytics } from './analytics.js';
 import { refreshAllocationChart } from './allocationChart.js';
+import { initHistorySnapshots, refreshHistorySnapshots } from './historySnapshots.js';
 
 const els = {};
 // Dynamic settings (defaults)
@@ -223,6 +224,38 @@ function initControls() {
   window.addEventListener('api-log-update', () => {
     if (!els.apiLogPanel?.classList.contains('hidden')) renderApiLog();
   });
+
+  // Mobile collapse for Record Action panel
+  const toggleBtn = document.getElementById('actionPanelToggle');
+  const panelBody = document.getElementById('actionPanelBody');
+  if (toggleBtn && panelBody) {
+    const STORAGE_KEY = 'actionPanelExpanded';
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const isMobile = window.matchMedia('(max-width: 640px)').matches; // sm breakpoint
+    // Default: expanded on desktop, collapsed on mobile unless saved preference exists
+    let expanded = saved != null ? saved === 'true' : !isMobile;
+    function applyState() {
+      if (expanded) {
+        panelBody.classList.remove('hidden');
+        toggleBtn.setAttribute('aria-expanded','true');
+        toggleBtn.textContent = '− Hide';
+        const hint = document.getElementById('actionPanelHint');
+        if (hint) hint.textContent = isMobile ? 'Tap to collapse' : '';
+      } else {
+        panelBody.classList.add('hidden');
+        toggleBtn.setAttribute('aria-expanded','false');
+        toggleBtn.textContent = '+ Record Action';
+        const hint = document.getElementById('actionPanelHint');
+        if (hint) hint.textContent = isMobile ? 'Tap to expand' : '';
+      }
+    }
+    applyState();
+    toggleBtn.addEventListener('click', () => {
+      expanded = !expanded;
+      localStorage.setItem(STORAGE_KEY, String(expanded));
+      applyState();
+    });
+  }
 }
 
 function exportPortfolioJSON() {
@@ -532,6 +565,7 @@ async function refreshAll() {
   // Finally update analytics performance chart
   try { refreshAnalytics(); } catch (e) { console.warn('Analytics refresh failed', e); }
   try { refreshAllocationChart(latestRows); } catch (e) { console.warn('Allocation chart refresh failed', e); }
+  try { refreshHistorySnapshots(); } catch (e) { console.warn('History snapshots refresh failed', e); }
 }
 
 async function refreshCoin(symbol) {
@@ -566,6 +600,7 @@ async function refreshCoin(symbol) {
   try { await renderMiniChartsForPortfolio(getPortfolio(), earliest2); } catch (_) { /* ignore */ }
   try { refreshAnalytics(); } catch (_) { /* ignore */ }
   try { refreshAllocationChart(latestRows); } catch (_) { /* ignore */ }
+  try { refreshHistorySnapshots(); } catch (_) { /* ignore */ }
 }
 
 function handleApiError(err, contextMsg) {
@@ -639,6 +674,7 @@ function initUI() {
   priceCache = loadPriceCache();
   // Initialize analytics module after DOM refs are ready
   try { initAnalytics(); } catch (e) { console.warn('Init analytics failed', e); }
+  try { initHistorySnapshots(); } catch (e) { console.warn('Init history snapshots failed', e); }
 }
 
 export { initUI, refreshAll };

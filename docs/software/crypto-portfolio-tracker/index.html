@@ -46,12 +46,18 @@
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 space-y-10">
       <!-- Add Coin Full-Width Card -->
       <section>
-        <div class="p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200/60 dark:ring-gray-700/60">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h2 class="text-xl font-semibold">Record Action (Buy / Sell)</h2>
-            <p class="text-xs md:text-sm text-gray-500 max-w-xl">Log a BUY or SELL action for a coin. Prices snapshot automatically. Sells must match the previous buy quantity.</p>
+          <div class="p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200/60 dark:ring-gray-700/60" id="recordActionCard">
+          <!-- Collapse toggle (visible on all sizes now) -->
+          <div class="flex items-center justify-between">
+            <button id="actionPanelToggle" type="button" class="text-sm font-medium inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-expanded="true" aria-controls="actionPanelBody">− Hide</button>
+            <span class="text-[10px] text-gray-500 sm:hidden" id="actionPanelHint">Tap to expand</span>
           </div>
-          <form id="addCoinForm" class="grid gap-4 sm:gap-5 md:gap-6 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-6 items-end">
+          <div id="actionPanelBody" class="mt-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <h2 class="text-xl font-semibold hidden sm:block">Record Action (Buy / Sell)</h2>
+              <p class="text-xs md:text-sm text-gray-500 max-w-xl">Log a BUY or SELL action for a coin. Prices snapshot automatically. Sells must match the previous buy quantity.</p>
+            </div>
+            <form id="addCoinForm" class="grid gap-4 sm:gap-5 md:gap-6 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-6 items-end">
             <div class="md:col-span-2 lg:col-span-2">
               <label class="block text-sm font-medium mb-1" for="symbolInput">Coin (type to search)</label>
                 <div class="flex flex-col sm:flex-row gap-2">
@@ -84,6 +90,7 @@
             </div>
             <p id="addCoinError" class="hidden text-sm text-red-600 md:col-span-5 lg:col-span-6 -mt-4"></p>
           </form>
+          </div>
         </div>
       </section>
 
@@ -177,6 +184,15 @@
               </div>
               <p class="mt-2 text-[10px] leading-snug text-gray-500 dark:text-gray-400">Stacked bar = Cost basis (grey) + unrealized gain (green) or loss (red). Tooltip also shows realized P/L and allocation %.</p>
             </div>
+        </div>
+
+        <!-- History Snapshots Table -->
+        <div id="historySnapshots" class="p-4 md:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">History Snapshots</h3>
+          <div id="historyTableWrapper" class="overflow-x-auto text-xs">
+            <div class="py-4 text-gray-500">Loading…</div>
+          </div>
+          <p class="mt-2 text-[10px] text-gray-500 dark:text-gray-400">Snapshots compare earlier values to current. 12h uses hourly data when available; longer ranges approximate by daily closes. Δ columns show gain/loss vs current.</p>
         </div>
       </section>
     </main>
