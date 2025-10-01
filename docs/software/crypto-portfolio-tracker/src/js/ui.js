@@ -530,7 +530,7 @@ async function refreshAll() {
   try { await renderMiniChartsForPortfolio(portfolio, earliest); } catch (e) { console.warn('Mini charts batch failed', e); }
   // Finally update analytics performance chart
   try { refreshAnalytics(); } catch (e) { console.warn('Analytics refresh failed', e); }
-  try { refreshAllocationChart(); } catch (e) { console.warn('Allocation chart refresh failed', e); }
+  try { refreshAllocationChart(latestRows); } catch (e) { console.warn('Allocation chart refresh failed', e); }
 }
 
 async function refreshCoin(symbol) {
@@ -564,7 +564,7 @@ async function refreshCoin(symbol) {
   if (settings.perCallDelayMs > 0) await sleep(settings.perCallDelayMs);
   try { await renderMiniChartsForPortfolio(getPortfolio(), earliest2); } catch (_) { /* ignore */ }
   try { refreshAnalytics(); } catch (_) { /* ignore */ }
-  try { refreshAllocationChart(); } catch (_) { /* ignore */ }
+  try { refreshAllocationChart(latestRows); } catch (_) { /* ignore */ }
 }
 
 function handleApiError(err, contextMsg) {

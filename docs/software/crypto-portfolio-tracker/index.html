@@ -27,10 +27,11 @@
 </head>
 <body class="h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
   <div class="min-h-full flex flex-col">
-    <header class="sticky top-0 z-10 backdrop-blur bg-white/80 dark:bg-gray-800/70 border-b border-gray-200 dark:border-gray-700">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-        <h1 class="text-2xl font-bold tracking-tight">Crypto Portfolio</h1>
-        <div class="ml-auto flex items-center gap-4">
+    <header id="appHeader" class="sticky top-0 z-10 backdrop-blur bg-white/80 dark:bg-gray-800/70 border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+        <!-- Hidden so that you can check in the office ^_- -->
+        <!-- <h1 class="text-2xl font-bold tracking-tight">Crypto Portfolio</h1> -->
+        <div class="flex flex-wrap items-center gap-3 ml-auto">
           <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
             <span>Dark</span>
             <input id="darkModeToggle" type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" />
@@ -50,12 +51,12 @@
             <h2 class="text-xl font-semibold">Record Action (Buy / Sell)</h2>
             <p class="text-xs md:text-sm text-gray-500 max-w-xl">Log a BUY or SELL action for a coin. Prices snapshot automatically. Sells must match the previous buy quantity.</p>
           </div>
-          <form id="addCoinForm" class="grid gap-6 md:grid-cols-5 lg:grid-cols-6 items-end">
+          <form id="addCoinForm" class="grid gap-4 sm:gap-5 md:gap-6 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-6 items-end">
             <div class="md:col-span-2 lg:col-span-2">
               <label class="block text-sm font-medium mb-1" for="symbolInput">Coin (type to search)</label>
-              <div class="flex gap-2">
-                <input id="symbolInput" list="coinOptions" type="text" required placeholder="e.g. BTC" class="flex-1 rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 uppercase" autocomplete="off" />
-                <button type="button" id="refreshCoinListBtn" class="px-3 py-2 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">Refresh List</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="symbolInput" list="coinOptions" type="text" required placeholder="e.g. BTC" class="flex-1 w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 uppercase" autocomplete="off" />
+                  <button type="button" id="refreshCoinListBtn" class="sm:w-auto w-full px-3 py-2 text-xs font-medium rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100">Refresh List</button>
               </div>
               <div class="flex items-center gap-3 mt-2">
                 <label class="flex items-center gap-1 text-[11px] cursor-pointer select-none"><input id="popularOnlyToggle" type="checkbox" checked class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" /> <span>Popular only</span></label>
@@ -78,7 +79,7 @@
               <input id="comparisonDate" type="date" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
               <p class="mt-1 text-xs text-gray-500">Defaults to 30 days ago.</p>
             </div>
-            <div class="md:col-span-1 flex md:block" style="padding-bottom: 1.5rem;">
+            <div class="md:col-span-1 flex md:block sm:mt-0 mt-1" style="padding-bottom: 1.5rem;">
               <button type="submit" class="w-full inline-flex justify-center items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500">Record</button>
             </div>
             <p id="addCoinError" class="hidden text-sm text-red-600 md:col-span-5 lg:col-span-6 -mt-4"></p>
@@ -187,7 +188,7 @@
 
   <script type="module" src="./src/js/main.js"></script>
   <!-- API Log Panel -->
-  <div id="apiLogPanel" class="hidden fixed top-16 right-4 w-96 max-h-[65vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-4 flex flex-col gap-2">
+  <div id="apiLogPanel" class="hidden fixed top-16 left-2 right-2 sm:left-auto sm:right-4 w-auto sm:w-96 max-h-[65vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-4 flex flex-col gap-2">
     <div class="flex items-center mb-1">
       <h3 class="font-semibold text-sm">API Calls</h3>
       <button id="refreshBtn" class="mr-2 inline-flex justify-center items-center gap-1 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium px-2 py-1 text-[11px] ml-2">Reload All</button>
@@ -196,7 +197,7 @@
     <div id="apiLogList" class="font-mono whitespace-pre-wrap leading-relaxed"></div>
   </div>
   <!-- Settings Panel -->
-  <div id="settingsPanel" class="hidden fixed top-16 right-4 w-80 max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-5 flex flex-col gap-4">
+  <div id="settingsPanel" class="hidden fixed top-16 left-2 right-2 sm:left-auto sm:right-4 w-auto sm:w-80 max-h-[70vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs p-5 flex flex-col gap-4">
     <div class="flex items-center mb-1">
       <h3 class="font-semibold text-sm">Settings</h3>
       <button id="settingsCloseBtn" class="ml-auto text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>

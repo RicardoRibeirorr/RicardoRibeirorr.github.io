@@ -1,7 +1,6 @@
 // allocationChart.js - horizontal bar chart for allocation & unrealized P/L
-// Assumptions: actions array has price snapshots. Current prices already fetched in UI refresh pipeline.
+// Now purely derives from already-fetched UI row data & action history (no new API calls)
 import { getPortfolio } from './portfolio.js';
-import { fetchCurrentPrices } from './api.js';
 
 let allocationChart = null;
 
@@ -31,23 +30,23 @@ function computeCostBasis(entry) {
   return { cost, remainingQty };
 }
 
-async function buildData() {
+function buildData(latestRows) {
   const portfolio = getPortfolio().filter(p => p.quantity > 0);
-  if (!portfolio.length) return { labels: [], datasets: [] };
-  // Ensure current prices snapshot
-  const symbols = portfolio.map(p => p.symbol);
-  let currPrices = {};
-  try { currPrices = await fetchCurrentPrices(symbols); } catch (_) {}
+  if (!portfolio.length) return { labels: [], costBasis: [], gains: [], losses: [], rows: [], totalCost: 1 };
+  // Map portfolio entries by symbol for cost basis; use latestRows for current prices
+  const rowMap = new Map();
+  if (Array.isArray(latestRows)) {
+    for (const r of latestRows) rowMap.set(r.symbol.toUpperCase(), r);
+  }
   const rows = [];
   for (const p of portfolio) {
-    const { cost, remainingQty } = computeCostBasis(p);
-    const currentPrice = currPrices[p.symbol] ?? null;
-    const currentValue = currentPrice != null ? currentPrice * p.quantity : null;
-    const unrealized = (currentValue != null && cost > 0) ? currentValue - cost : 0;
+    const { cost } = computeCostBasis(p);
+    const currentPrice = rowMap.get(p.symbol)?.currentPrice ?? null;
+    const currentValue = (currentPrice != null) ? currentPrice * p.quantity : null;
+    const unrealized = (currentValue != null && cost > 0) ? (currentValue - cost) : 0;
     rows.push({ symbol: p.symbol, cost, currentValue, unrealized });
   }
-  const totalCost = rows.reduce((s,r)=>s + (r.cost||0), 0) || 1;
-  // Prepare chart data: We'll use stacked horizontal bars: dataset 1 cost basis (neutral), dataset 2 gain (positive only), dataset 3 loss (negative only)
+  const totalCost = rows.reduce((s,r)=> s + (r.cost || 0), 0) || 1;
   const labels = rows.map(r => r.symbol);
   const costBasis = rows.map(r => Number(r.cost.toFixed(2)));
   const gains = rows.map(r => r.unrealized > 0 ? Number(r.unrealized.toFixed(2)) : 0);
@@ -57,10 +56,10 @@ async function buildData() {
 
 function fmt(v) { return '€' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-export async function renderAllocationChart() {
+export async function renderAllocationChart(latestRows) {
   const ctx = document.getElementById('allocationChart');
   if (!ctx) return;
-  const { labels, costBasis, gains, losses, rows, totalCost } = await buildData();
+  const { labels, costBasis, gains, losses, rows, totalCost } = buildData(latestRows);
   if (!labels.length) {
     if (allocationChart) { allocationChart.destroy(); allocationChart = null; }
     return;
@@ -114,12 +113,14 @@ export async function renderAllocationChart() {
     animation: { duration: 400 }
   };
   if (allocationChart) {
-    allocationChart.data = data;
-    allocationChart.options = options;
+    allocationChart.data.labels = labels;
+    allocationChart.data.datasets[0].data = costBasis;
+    allocationChart.data.datasets[1].data = gains;
+    allocationChart.data.datasets[2].data = losses;
     allocationChart.update();
   } else {
     allocationChart = new Chart(ctx.getContext('2d'), { type: 'bar', data, options });
   }
 }
 
-export function refreshAllocationChart() { renderAllocationChart(); }
+export function refreshAllocationChart(latestRows) { renderAllocationChart(latestRows); }
