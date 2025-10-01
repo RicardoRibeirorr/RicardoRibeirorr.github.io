@@ -1,23 +1,29 @@
 // historySnapshots.js - builds a multi-horizon snapshot table
-// Horizons requested: current (baseline), 12h, 24h (yesterday), 4d, 7d, 14d, 21d, 30d, 60d, 90d
-// For each symbol and portfolio total show: icon (direction), type (horizon label), portfolio total EUR at that horizon, per-coin price, and P/L vs current.
+// Updated: user-specified sequence:
+//   current, 2h,4h,6h,8h,10h,12h,...,24h, Yesterday, 1d,2d,3d,4d, 1w,2w,3w, 1m,2m,3m,6m
+// Note: Some labels (24h, Yesterday, 1d) overlap in time (all ~24h). They are kept as requested; values will likely be identical.
+// For each symbol and portfolio total show: direction, label, portfolio total EUR, per-coin price, and P/L vs current.
 
 import { fetchMarketChart } from './api.js';
 import { getPortfolio } from './portfolio.js';
 
-// Helper: choose minimum days range needed to cover max horizon
-const HORIZONS = [
-  { key: 'current', label: 'Current', hours: 0 },
-  { key: 'h12', label: '12h', hours: 12 },
-  { key: 'h24', label: 'Yesterday', hours: 24 },
-  { key: 'd4', label: '4d', hours: 24 * 4 },
-  { key: 'd7', label: '1w', hours: 24 * 7 },
-  { key: 'd14', label: '2w', hours: 24 * 14 },
-  { key: 'd21', label: '3w', hours: 24 * 21 },
-  { key: 'd30', label: '1m', hours: 24 * 30 },
-  { key: 'd60', label: '2m', hours: 24 * 60 },
-  { key: 'd90', label: '3m', hours: 24 * 90 },
-];
+// Dynamic horizons builder (hourly horizons removed – hourly API not available).
+// Kept overlapping 24h / Yesterday / 1d labels as previously requested; remove if desired later.
+function buildHorizons() {
+  const list = [];
+  list.push({ key: 'current', label: 'Current', hours: 0 });
+  list.push({ key: 'h24', label: '24h', hours: 24 });
+  list.push({ key: 'yesterday', label: 'Yesterday', hours: 24 });
+  for (let d = 1; d <= 4; d++) list.push({ key: `d${d}`, label: `${d}d`, hours: 24 * d });
+  list.push({ key: 'w1', label: '1w', hours: 24 * 7 });
+  list.push({ key: 'w2', label: '2w', hours: 24 * 14 });
+  list.push({ key: 'w3', label: '3w', hours: 24 * 21 });
+  list.push({ key: 'm1', label: '1m', hours: 24 * 30 });
+  list.push({ key: 'm2', label: '2m', hours: 24 * 60 });
+  list.push({ key: 'm3', label: '3m', hours: 24 * 90 });
+  list.push({ key: 'm6', label: '6m', hours: 24 * 180 });
+  return list;
+}
 
 function directionIcon(deltaPct) {
   if (deltaPct == null) return '·';
@@ -41,49 +47,38 @@ function fmtPrice(v) {
   return out;
 }
 
-// We attempt to retrieve daily prices via market_chart for up to 90 days.
-// For intra-day (12h) we approximate using the closest daily point (will be coarse) - limitation of using daily interval.
-// (Could refine by calling with ?interval=hourly for small day windows, but we limit API usage.)
+// We now fetch only daily market_chart data; intra-day horizons removed due to hourly endpoint limitations.
 
 async function buildSnapshots() {
   const portfolio = getPortfolio();
   if (!portfolio.length) return null;
-  const maxHours = Math.max(...HORIZONS.map(h => h.hours));
-  const maxDays = Math.ceil(maxHours / 24); // 0 -> 0 => we'll still request 1 day minimum below
-  const daysToFetch = Math.max(1, maxDays + 1); // buffer
-  const perSymbolSeries = new Map();
+  const nowTs = Date.now();
+  const horizons = buildHorizons();
+  const needMaxHours = Math.max(...horizons.map(h => h.hours));
+  const needDays = Math.ceil(needMaxHours / 24);
+  // Ensure we fetch enough daily history (needDays plus small buffer)
+  const dailyDaysToFetch = Math.max(needDays + 1, 7);
+  const dailySeries = new Map();
+  // Fetch daily (coarse) once per symbol
   for (const { symbol } of portfolio) {
     try {
-      const prices = await fetchMarketChart(symbol, daysToFetch); // [ [ts, price], ... ] timestamps ms
-      perSymbolSeries.set(symbol, prices);
-    } catch (e) {
-      console.warn('History snapshot fetch failed for', symbol, e);
-    }
+      const prices = await fetchMarketChart(symbol, dailyDaysToFetch); // daily points
+      dailySeries.set(symbol, prices);
+    } catch (e) { console.warn('Daily series failed', symbol, e); }
   }
-  if (!perSymbolSeries.size) return null;
-  const nowTs = Date.now();
   function priceAt(symbol, hoursAgo) {
-    if (hoursAgo === 0) {
-      // approximate current: latest point in series
-      const series = perSymbolSeries.get(symbol);
-      if (!series || !series.length) return null;
-      return series[series.length -1][1];
-    }
     const targetTs = nowTs - hoursAgo * 3600000;
-    const series = perSymbolSeries.get(symbol) || [];
-    // Find closest point at or before target (linear scan backwards acceptable for short arrays)
-    for (let i = series.length -1; i >=0; i--) {
-      const [ts, price] = series[i];
-      if (ts <= targetTs) return price;
-    }
-    // fallback earliest
-    return series.length ? series[0][1] : null;
+    const dSer = dailySeries.get(symbol) || [];
+    for (let i = dSer.length -1; i >=0; i--) { const [ts, price] = dSer[i]; if (ts <= targetTs) return price; }
+    return dSer.length ? dSer[0][1] : null;
   }
-  // Build rows per horizon
+  // Current prices (h=0) computed from the freshest hourly if present else daily latest
   const currentPrices = new Map();
-  for (const { symbol } of portfolio) currentPrices.set(symbol, priceAt(symbol, 0));
+  for (const { symbol } of portfolio) {
+    currentPrices.set(symbol, priceAt(symbol, 0));
+  }
   const rows = [];
-  for (const h of HORIZONS) {
+  for (const h of horizons) {
     const prices = {};
     let portfolioTotal = 0;
     for (const { symbol, quantity } of portfolio) {
@@ -91,18 +86,15 @@ async function buildSnapshots() {
       prices[symbol] = p;
       if (p != null) portfolioTotal += p * quantity;
     }
-    // compute delta vs current
-    let deltaPct = null;
-    let deltaEUR = null;
-    if (h.key !== 'current') {
-      let currentTotal = 0; let have = false;
+    let deltaPct = null; let deltaEUR = null;
+    if (h.hours !== 0) {
+      let currTotal = 0; let have = false;
       for (const { symbol, quantity } of portfolio) {
-        const cp = currentPrices.get(symbol);
-        if (cp == null) continue; have = true; currentTotal += cp * quantity;
+        const cp = currentPrices.get(symbol); if (cp == null) continue; have = true; currTotal += cp * quantity;
       }
-      if (have && currentTotal) {
-        deltaEUR = portfolioTotal ? (currentTotal - portfolioTotal) : 0;
-        deltaPct = portfolioTotal ? (currentTotal / portfolioTotal - 1) * 100 : null;
+      if (have && portfolioTotal) {
+        deltaEUR = currTotal - portfolioTotal;
+        deltaPct = (currTotal / portfolioTotal - 1) * 100;
       }
     }
     rows.push({ horizon: h, portfolioTotal: portfolioTotal || 0, prices, deltaPct, deltaEUR });

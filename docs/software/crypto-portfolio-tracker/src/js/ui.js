@@ -423,7 +423,7 @@ function renderTable(rows) {
           <input type="date" data-acq="${row.symbol}" value="${acqDate || ''}" class="block w-full rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 text-[11px] px-1 py-0.5" />
         </div>
       </td>
-  <td class="px-4 py-2 text-right">${row.quantity}</td>
+  <td class="px-4 py-2 text-right">${Number(row.quantity).toFixed(2)}</td>
   <td class="px-4 py-2 text-right" data-cell="pastPrice" title="Price on ${acqDate}">${row.pastPrice != null ? '€' + formatDisplayPrice(row.pastPrice) : '—'}</td>
   <td class="px-4 py-2 text-right font-mono" data-cell="currentPrice">${row.currentPrice != null ? '€' + row.currentPrice : '—'}</td>
       <td class="px-4 py-2 text-right ${diffCls}" data-cell="diff">${row.currentPrice != null && row.pastPrice != null ? (diff >= 0 ? '+' : '') + '€' + diff.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
@@ -453,7 +453,8 @@ function renderTable(rows) {
         </thead>
         <tbody>
           ${actions.map(a => {
-            const qtyDisp = a.type === 'sell' ? '-' + a.quantity : a.quantity;
+            const qtyDispRaw = Number(a.quantity).toFixed(2);
+            const qtyDisp = a.type === 'sell' ? '-' + qtyDispRaw : qtyDispRaw;
             const rp = a.realizedProfit != null ? (a.realizedProfit >=0 ? '+' : '') + '€' + a.realizedProfit.toFixed(2) : '—';
             const rpCls = a.realizedProfit != null ? (a.realizedProfit >=0 ? 'text-bull' : 'text-bear') : '';
             return `<tr>

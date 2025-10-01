@@ -27,11 +27,16 @@ function normalizeSymbol(symbol) {
 
 function getPortfolio() {
   return [...state];
+function roundQty(q) { return Math.round((Number(q) || 0) * 100) / 100; }
+function getPortfolio() {
+  // Return shallow copy with quantities normalized (defensive)
+  return state.map(e => ({ ...e, quantity: roundQty(e.quantity) }));
+}
 }
 
 async function addOrUpdateCoin(symbol, quantity = 1, acquisitionDate = null) {
   symbol = normalizeSymbol(symbol);
-  quantity = Number(quantity) || 0;
+  quantity = roundQty(quantity);
   if (quantity < 0) quantity = 0;
   const idx = state.findIndex(c => c.symbol === symbol);
   if (idx >= 0) {
@@ -66,8 +71,9 @@ function clearPortfolio() {
 async function recordAction(symbol, type, quantity, actionDateOverride = null) {
   symbol = normalizeSymbol(symbol);
   if (!['buy','sell'].includes(type)) throw new Error('Invalid action type');
-  quantity = Number(quantity) || 0;
+  quantity = roundQty(quantity);
   if (quantity <= 0) throw new Error('Quantity must be > 0');
+  entry.actions.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2), type: 'buy', date, quantity: roundQty(qty), price, valueEUR: (price != null ? roundQty(qty) * price : null), realizedProfit: null });
   let entry = state.find(c => c.symbol === symbol);
   if (!entry) {
     if (type === 'sell') throw new Error('Cannot sell: no existing position');
@@ -87,9 +93,10 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
     const today = new Date().toISOString().slice(0,10);
     date = actionDateOverride > today ? today : actionDateOverride;
   }
-  const action = { id: Date.now() + '-' + Math.random().toString(36).slice(2), type, date, quantity, price, valueEUR: (price != null ? quantity * price : null), realizedProfit: null };
+  const action = { id: Date.now() + '-' + Math.random().toString(36).slice(2), type, date, quantity: roundQty(quantity), price, valueEUR: (price != null ? roundQty(quantity) * price : null), realizedProfit: null };
   if (type === 'buy') {
     entry.quantity = (entry.quantity || 0) + quantity;
+  entry.quantity = roundQty((entry.quantity || 0) + quantity);
     // Update acquisitionDate if previously flat (quantity before buy was 0)
     if ((entry.quantity - quantity) === 0) entry.acquisitionDate = date;
     entry.addedPrice = price; // last buy snapshot
@@ -127,6 +134,7 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
     }
     action.realizedProfit = realized;
     entry.quantity -= quantity;
+  entry.quantity = roundQty(entry.quantity - quantity);
     if (entry.quantity <= 0) {
       entry.quantity = 0;
       // When flat, clear acquisitionDate (next buy will set anew)
@@ -145,6 +153,7 @@ function recomputeEntryDerived(entry) {
     if (a.type === 'buy') qty += a.quantity; else if (a.type === 'sell') qty -= a.quantity;
   }
   entry.quantity = Math.max(0, qty);
+  entry.quantity = roundQty(Math.max(0, qty));
   // Set acquisitionDate to first buy after last flat period
   if (entry.quantity === 0) {
     entry.acquisitionDate = null;
@@ -335,6 +344,8 @@ function setPortfolio(items) {
       let { id, type, date, quantity: aq, price, realizedProfit, valueEUR } = a;
       if (!['buy','sell'].includes(type)) return null;
       aq = Number(aq);
+  aq = roundQty(aq);
+  quantity = roundQty(quantity);
       if (!isFinite(aq) || aq <= 0) return null;
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) date = new Date().toISOString().slice(0,10);
       price = price != null && isFinite(Number(price)) ? Number(price) : null;
