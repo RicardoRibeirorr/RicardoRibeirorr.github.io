@@ -20,7 +20,7 @@ function addPrint(currentPricesMap) {
   }
   const id = Date.now() + '-' + Math.random().toString(36).slice(2);
   const entry = { id, ts: Date.now(), prices, portfolioTotal: total };
-  prints.push(entry);
+  prints.unshift(entry); // newest first
   saveSpotPrints(prints);
   return entry;
 }

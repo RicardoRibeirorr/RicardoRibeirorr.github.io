@@ -15,7 +15,7 @@ for (const entry of state) {
       : (entry.addedAt ? entry.addedAt.slice(0,10) : new Date().toISOString().slice(0,10));
     entry.actions = [];
     if (qty > 0) {
-      entry.actions.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2), type: 'buy', date, quantity: qty, price, valueEUR: (price != null ? qty * price : null), realizedProfit: null });
+      entry.actions.unshift({ id: Date.now() + '-' + Math.random().toString(36).slice(2), type: 'buy', date, quantity: qty, price, valueEUR: (price != null ? qty * price : null), realizedProfit: null });
     }
   }
 }
@@ -25,13 +25,12 @@ function normalizeSymbol(symbol) {
   return symbol.trim().toUpperCase();
 }
 
-function getPortfolio() {
-  return [...state];
+// Quantity rounding helper (2 decimals)
 function roundQty(q) { return Math.round((Number(q) || 0) * 100) / 100; }
+
 function getPortfolio() {
-  // Return shallow copy with quantities normalized (defensive)
+  // Return shallow copy with normalized quantities
   return state.map(e => ({ ...e, quantity: roundQty(e.quantity) }));
-}
 }
 
 async function addOrUpdateCoin(symbol, quantity = 1, acquisitionDate = null) {
@@ -76,7 +75,6 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
   if (!['buy','sell'].includes(type)) throw new Error('Invalid action type');
   quantity = roundQty(quantity);
   if (quantity <= 0) throw new Error('Quantity must be > 0');
-  entry.actions.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2), type: 'buy', date, quantity: roundQty(qty), price, valueEUR: (price != null ? roundQty(qty) * price : null), realizedProfit: null });
   let entry = state.find(c => c.symbol === symbol);
   if (!entry) {
     if (type === 'sell') throw new Error('Cannot sell: no existing position');
@@ -98,8 +96,7 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
   }
   const action = { id: Date.now() + '-' + Math.random().toString(36).slice(2), type, date, quantity: roundQty(quantity), price, valueEUR: (price != null ? roundQty(quantity) * price : null), realizedProfit: null };
   if (type === 'buy') {
-    entry.quantity = (entry.quantity || 0) + quantity;
-  entry.quantity = roundQty((entry.quantity || 0) + quantity);
+    entry.quantity = roundQty((entry.quantity || 0) + quantity);
     // Update acquisitionDate if previously flat (quantity before buy was 0)
     if ((entry.quantity - quantity) === 0) entry.acquisitionDate = date;
     entry.addedPrice = price; // last buy snapshot
@@ -136,15 +133,15 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
       if (lot.qty === 0) fifoLots.shift();
     }
     action.realizedProfit = realized;
-    entry.quantity -= quantity;
-  entry.quantity = roundQty(entry.quantity - quantity);
+    entry.quantity = roundQty(entry.quantity - quantity);
     if (entry.quantity <= 0) {
       entry.quantity = 0;
       // When flat, clear acquisitionDate (next buy will set anew)
       entry.acquisitionDate = null;
     }
   }
-  entry.actions.push(action);
+  // Prepend newest action (reverse chronological order)
+  entry.actions.unshift(action);
   savePortfolio(state);
     try { window.dispatchEvent(new CustomEvent('portfolio-updated')); } catch(_) {}
   return getPortfolio();
@@ -153,10 +150,10 @@ async function recordAction(symbol, type, quantity, actionDateOverride = null) {
 function recomputeEntryDerived(entry) {
   // Recompute net quantity from buys - sells
   let qty = 0;
-  for (const a of entry.actions) {
+  // Iterate actions in chronological order (oldest first) for FIFO: actions stored newest-first so traverse reversed
+  for (const a of [...entry.actions].reverse()) {
     if (a.type === 'buy') qty += a.quantity; else if (a.type === 'sell') qty -= a.quantity;
   }
-  entry.quantity = Math.max(0, qty);
   entry.quantity = roundQty(Math.max(0, qty));
   // Set acquisitionDate to first buy after last flat period
   if (entry.quantity === 0) {
@@ -165,7 +162,7 @@ function recomputeEntryDerived(entry) {
     // Walk actions accumulating until positive then record that buy's date
     let running = 0;
     let acq = null;
-    for (const a of entry.actions) {
+    for (const a of [...entry.actions].reverse()) {
       if (a.type === 'buy') {
         const before = running;
         running += a.quantity;
@@ -189,7 +186,7 @@ function deleteAction(symbol, actionId) {
   entry.actions.splice(idx, 1);
   // Recompute realizedProfit for all sell actions (since FIFO chain may change)
   const buys = [];
-  for (const a of entry.actions) {
+  for (const a of [...entry.actions].reverse()) {
     if (a.type === 'buy') {
       buys.push({ qty: a.quantity, price: a.price });
     } else if (a.type === 'sell') {
@@ -216,7 +213,7 @@ function deleteAction(symbol, actionId) {
 function recomputeSellRealizedProfits(entry) {
   // Build FIFO lots of buys with their remaining qty and price
   const buys = [];
-  for (const a of entry.actions) {
+  for (const a of [...entry.actions].reverse()) {
     if (a.type === 'buy') {
       buys.push({ qty: a.quantity, price: a.price });
     } else if (a.type === 'sell') {
@@ -335,8 +332,9 @@ function setPortfolio(items) {
     let { symbol, quantity, addedAt, addedPrice, acquisitionDate, actions } = it;
     if (!symbol) continue;
     symbol = normalizeSymbol(String(symbol));
-    quantity = Number(quantity);
+  quantity = Number(quantity);
     if (!isFinite(quantity) || quantity < 0) continue;
+  quantity = roundQty(quantity);
     if (addedAt && isNaN(Date.parse(addedAt))) addedAt = new Date().toISOString();
     if (addedPrice != null) {
       const num = Number(addedPrice);
@@ -349,9 +347,8 @@ function setPortfolio(items) {
       if (!a || typeof a !== 'object') return null;
       let { id, type, date, quantity: aq, price, realizedProfit, valueEUR } = a;
       if (!['buy','sell'].includes(type)) return null;
-      aq = Number(aq);
-  aq = roundQty(aq);
-  quantity = roundQty(quantity);
+    aq = Number(aq);
+    aq = roundQty(aq);
       if (!isFinite(aq) || aq <= 0) return null;
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) date = new Date().toISOString().slice(0,10);
       price = price != null && isFinite(Number(price)) ? Number(price) : null;

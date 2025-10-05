@@ -253,6 +253,13 @@
         <input id="settingApiDelay" type="number" min="0" max="10" step="0.5" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
         <p class="text-[10px] text-gray-500">Default 2s</p>
       </div>
+      <div class="flex flex-col gap-1">
+        <label class="font-medium flex items-center gap-1" for="settingRetryDelay">Retry Failed Loads (seconds)
+          <span title="Delay before retrying any coin price loads that failed (current or historical)." class="cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">?</span>
+        </label>
+        <input id="settingRetryDelay" type="number" min="10" max="600" step="5" class="w-full rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" />
+        <p class="text-[10px] text-gray-500">Default 70s</p>
+      </div>
       <div class="flex items-center gap-3">
         <button id="applySettingsBtn" type="button" class="inline-flex justify-center items-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 text-xs">Apply</button>
         <span id="settingsStatus" class="text-[10px] text-gray-500"></span>

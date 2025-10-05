@@ -17,6 +17,7 @@ const els = {};
 let settings = {
   refreshHours: 6, // hours freshness window
   perCallDelayMs: 2000, // ms delay between sequential API calls
+  retryFailedDelayMs: 70000, // ms before retrying failed loads
 };
 let priceCache = {};
 let latestRows = [];
@@ -58,6 +59,7 @@ function initDOMRefs() {
   // Settings
   els.settingRefreshHours = q('settingRefreshHours');
   els.settingApiDelay = q('settingApiDelay');
+  els.settingRetryDelay = q('settingRetryDelay');
   els.applySettingsBtn = q('applySettingsBtn');
   els.settingsStatus = q('settingsStatus');
   // Spot prints
@@ -103,21 +105,27 @@ function initSettings() {
   if (stored) {
     if (Number.isFinite(stored.refreshHours)) settings.refreshHours = Math.min(72, Math.max(1, stored.refreshHours));
     if (Number.isFinite(stored.perCallDelayMs)) settings.perCallDelayMs = Math.min(10000, Math.max(0, stored.perCallDelayMs));
+    if (Number.isFinite(stored.retryFailedDelayMs)) settings.retryFailedDelayMs = Math.min(600000, Math.max(10000, stored.retryFailedDelayMs));
   }
   if (els.settingRefreshHours) els.settingRefreshHours.value = settings.refreshHours;
   if (els.settingApiDelay) els.settingApiDelay.value = (settings.perCallDelayMs / 1000);
+  if (els.settingRetryDelay) els.settingRetryDelay.value = Math.round(settings.retryFailedDelayMs / 1000);
   if (els.applySettingsBtn) {
     els.applySettingsBtn.addEventListener('click', () => {
-      const rh = parseFloat(els.settingRefreshHours.value);
-      const delaySec = parseFloat(els.settingApiDelay.value);
+  const rh = parseFloat(els.settingRefreshHours.value);
+  const delaySec = parseFloat(els.settingApiDelay.value);
+  const retrySec = parseFloat(els.settingRetryDelay?.value);
       const newRefresh = Number.isFinite(rh) ? Math.min(72, Math.max(1, rh)) : settings.refreshHours;
       const newDelayMs = Number.isFinite(delaySec) ? Math.min(10000, Math.max(0, delaySec * 1000)) : settings.perCallDelayMs;
-      const changed = newRefresh !== settings.refreshHours || newDelayMs !== settings.perCallDelayMs;
+  const newRetryMs = Number.isFinite(retrySec) ? Math.min(600000, Math.max(10000, retrySec * 1000)) : settings.retryFailedDelayMs;
+  const changed = newRefresh !== settings.refreshHours || newDelayMs !== settings.perCallDelayMs || newRetryMs !== settings.retryFailedDelayMs;
       settings.refreshHours = newRefresh;
       settings.perCallDelayMs = newDelayMs;
+  settings.retryFailedDelayMs = newRetryMs;
       saveSettings(settings);
       if (els.settingRefreshHours) els.settingRefreshHours.value = settings.refreshHours;
       if (els.settingApiDelay) els.settingApiDelay.value = (settings.perCallDelayMs / 1000);
+  if (els.settingRetryDelay) els.settingRetryDelay.value = Math.round(settings.retryFailedDelayMs / 1000);
       if (els.settingsStatus) {
         els.settingsStatus.textContent = changed ? 'Saved. Applying…' : 'No changes';
         setTimeout(() => { if (els.settingsStatus) els.settingsStatus.textContent = ''; }, 2500);
@@ -285,7 +293,7 @@ function exportPortfolioJSON() {
       exportedAt: new Date().toISOString(),
       comparisonDate: els.comparisonDate?.value || null,
       portfolio: getPortfolio(),
-      settings: { refreshHours: settings.refreshHours, perCallDelayMs: settings.perCallDelayMs },
+  settings: { refreshHours: settings.refreshHours, perCallDelayMs: settings.perCallDelayMs, retryFailedDelayMs: settings.retryFailedDelayMs },
       version: 2,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -326,10 +334,15 @@ function handleImportFile(ev) {
           const dms = Math.min(10000, Math.max(0, json.settings.perCallDelayMs));
           if (dms !== settings.perCallDelayMs) { settings.perCallDelayMs = dms; changed = true; }
         }
+        if (Number.isFinite(json.settings.retryFailedDelayMs)) {
+          const rfd = Math.min(600000, Math.max(10000, json.settings.retryFailedDelayMs));
+          if (rfd !== settings.retryFailedDelayMs) { settings.retryFailedDelayMs = rfd; changed = true; }
+        }
         saveSettings(settings);
         // Reflect in UI controls
         if (els.settingRefreshHours) els.settingRefreshHours.value = settings.refreshHours;
-        if (els.settingApiDelay) els.settingApiDelay.value = (settings.perCallDelayMs / 1000);
+  if (els.settingApiDelay) els.settingApiDelay.value = (settings.perCallDelayMs / 1000);
+  if (els.settingRetryDelay) els.settingRetryDelay.value = Math.round(settings.retryFailedDelayMs / 1000);
         if (changed) showToast('Settings restored from import', 'info');
       }
       await refreshAll();
@@ -625,6 +638,7 @@ async function refreshAll() {
   // Provide immediate provisional chart using any cached data
   const provisional = quickChartFromRows(rows);
   if (provisional.labels.length) updateChart(provisional);
+  const failedSymbols = new Set();
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     if (!row.needsFetch) continue;
@@ -647,6 +661,7 @@ async function refreshAll() {
     const provisional2 = quickChartFromRows(rows);
     if (provisional2.labels.length) updateChart(provisional2);
     if (settings.perCallDelayMs > 0 && i < rows.length - 1) await sleep(settings.perCallDelayMs);
+    if (error) failedSymbols.add(row.symbol);
   }
   const earliest = rows.reduce((min, r) => (r.acquisitionDate && r.acquisitionDate < min ? r.acquisitionDate : min), rows[0].acquisitionDate);
   if (settings.perCallDelayMs > 0) await sleep(settings.perCallDelayMs);
@@ -658,6 +673,16 @@ async function refreshAll() {
   try { refreshAllocationChart(latestRows); } catch (e) { console.warn('Allocation chart refresh failed', e); }
   try { refreshHistorySnapshots(); } catch (e) { console.warn('History snapshots refresh failed', e); }
   try { renderSpotPrints(); } catch (_) {}
+  if (failedSymbols.size) {
+    const delay = settings.retryFailedDelayMs || 70000;
+    setTimeout(() => {
+      const list = [...failedSymbols];
+      const preview = list.slice(0,5).join(',');
+      const extra = list.length > 5 ? ` +${list.length-5} more` : '';
+      showToast(`Auto retrying ${list.length} failed ${list.length===1?'asset':'assets'}: ${preview}${extra}`, 'info');
+      retryFailedLoads(list);
+    }, delay);
+  }
 }
 
 async function refreshCoin(symbol) {
@@ -694,6 +719,44 @@ async function refreshCoin(symbol) {
   try { refreshAnalytics(); } catch (_) { /* ignore */ }
   try { refreshAllocationChart(latestRows); } catch (_) { /* ignore */ }
   try { refreshHistorySnapshots(); } catch (_) { /* ignore */ }
+  if (error) {
+    const delay = settings.retryFailedDelayMs || 70000;
+    setTimeout(() => {
+      showToast(`Auto retrying failed asset ${symbol}`, 'info');
+      retryFailedLoads([symbol]);
+    }, delay);
+  }
+}
+
+async function retryFailedLoads(symbols) {
+  const portfolio = getPortfolio();
+  const rowsMap = new Map(latestRows.map(r => [r.symbol, r]));
+  for (let i = 0; i < symbols.length; i++) {
+    const sym = symbols[i];
+    if (!portfolio.find(p => p.symbol === sym)) continue;
+    const row = rowsMap.get(sym);
+    if (!row) continue;
+    let error = false;
+    // retry current
+    try {
+      const curr = await fetchCurrentPrices([sym]);
+      if (curr[sym] != null) { row.currentPrice = curr[sym]; setCachedCurrent(sym, row.currentPrice); }
+    } catch (_) { error = true; }
+    if (settings.perCallDelayMs > 0) await sleep(settings.perCallDelayMs);
+    // retry historical
+    try {
+      const past = await fetchHistoricalPrice(sym, row.acquisitionDate);
+      if (past != null) { row.pastPrice = past; setCachedHistorical(sym, row.acquisitionDate, row.pastPrice); }
+    } catch (_) { error = true; }
+    row.statusText = error ? 'error(retry)' : `up to date (${hoursAgo(Date.now())}h ago)`;
+    updateRowComputed(row);
+    finalizeSummary(latestRows);
+    if (settings.perCallDelayMs > 0 && i < symbols.length - 1) await sleep(settings.perCallDelayMs);
+  }
+  ensurePortfolio24hValue();
+  try { refreshAllocationChart(latestRows); } catch(_) {}
+  try { refreshHistorySnapshots(); } catch(_) {}
+  try { renderSpotPrints(); } catch(_) {}
 }
 
 function handleApiError(err, contextMsg) {
@@ -785,7 +848,7 @@ function captureSpotPrint() {
 
 function renderSpotPrints() {
   if (!els.spotPrintsTbody || !els.spotPrintsThead) return;
-  const prints = listPrints().sort((a,b) => a.ts - b.ts); // chronological
+  const prints = listPrints(); // already newest-first
   const portfolio = getPortfolio();
   const symbols = portfolio.map(p => p.symbol);
   // Build header if empty or symbol set changed

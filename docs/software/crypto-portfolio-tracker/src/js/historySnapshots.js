@@ -12,9 +12,9 @@ import { getPortfolio } from './portfolio.js';
 function buildHorizons() {
   const list = [];
   list.push({ key: 'current', label: 'Current', hours: 0 });
-  list.push({ key: 'h24', label: '24h', hours: 24 });
   list.push({ key: 'yesterday', label: 'Yesterday', hours: 24 });
-  for (let d = 1; d <= 4; d++) list.push({ key: `d${d}`, label: `${d}d`, hours: 24 * d });
+  // Skip explicit 24h and 1d per user request; start multi-day at 2d
+  for (let d = 2; d <= 4; d++) list.push({ key: `d${d}`, label: `${d}d`, hours: 24 * d });
   list.push({ key: 'w1', label: '1w', hours: 24 * 7 });
   list.push({ key: 'w2', label: '2w', hours: 24 * 14 });
   list.push({ key: 'w3', label: '3w', hours: 24 * 21 });
@@ -116,16 +116,33 @@ function renderSnapshotTable(data) {
     <th class="px-2 py-1 text-right">Δ €</th>
     <th class="px-2 py-1 text-right">Δ %</th>
   </tr></thead>`;
-  const bodyRows = data.rows.map(r => {
-    const cls = r.deltaPct == null ? '' : (r.deltaPct > 0 ? 'text-bull' : (r.deltaPct < 0 ? 'text-bear' : ''));
-    return `<tr>
-      <td class="px-2 py-1">${directionIcon(r.deltaPct)}</td>
-      <td class="px-2 py-1">${r.horizon.label}</td>
-      <td class="px-2 py-1 text-right">${fmtEUR(r.portfolioTotal)}</td>
-  ${symbols.map(s => `<td class='px-2 py-1 text-right'>${r.prices[s] != null ? fmtPrice(r.prices[s]) : '—'}</td>`).join('')}
-      <td class="px-2 py-1 text-right ${cls}">${r.deltaEUR != null ? (r.deltaEUR >=0?'+':'') + '€' + r.deltaEUR.toFixed(2) : '—'}</td>
-      <td class="px-2 py-1 text-right ${cls}">${fmtPct(r.deltaPct)}</td>
-    </tr>`;
+  // Coloring logic: compare each row to the NEXT (older) row so the top row is colored vs the one below.
+  // Last row has no next -> no color.
+  const bodyRows = data.rows.map((r, idx) => {
+        const next = idx < data.rows.length - 1 ? data.rows[idx + 1] : null;
+        let portCls = '';
+        if (next) {
+          if (r.portfolioTotal > next.portfolioTotal) portCls = 'text-bull'; else if (r.portfolioTotal <= next.portfolioTotal) portCls = 'text-bear';
+        }
+        const coinCells = symbols.map(s => {
+          const val = r.prices[s];
+          const nextVal = next ? next.prices[s] : null;
+          let cCls = '';
+          if (next && val != null && nextVal != null) {
+            if (val > nextVal) cCls = 'text-bull'; else if (val <= nextVal) cCls = 'text-bear';
+          }
+          return `<td class='px-2 py-1 text-right ${cCls}'>${val != null ? fmtPrice(val) : '—'}</td>`;
+        }).join('');
+        // Δ columns still represent change vs CURRENT (not next). Keep existing behavior.
+        const clsDelta = r.deltaPct == null ? '' : (r.deltaPct > 0 ? 'text-bull' : (r.deltaPct < 0 ? 'text-bear' : 'text-bear'));
+        return `<tr>
+          <td class="px-2 py-1">${directionIcon(r.deltaPct)}</td>
+          <td class="px-2 py-1">${r.horizon.label}</td>
+          <td class="px-2 py-1 text-right ${portCls}">${fmtEUR(r.portfolioTotal)}</td>
+          ${coinCells}
+          <td class="px-2 py-1 text-right ${clsDelta}">${r.deltaEUR != null ? (r.deltaEUR >=0?'+':'') + '€' + r.deltaEUR.toFixed(2) : '—'}</td>
+          <td class="px-2 py-1 text-right ${clsDelta}">${fmtPct(r.deltaPct)}</td>
+        </tr>`;
   }).join('');
   wrap.innerHTML = `<table class="min-w-full border-separate border-spacing-y-0.5 text-[11px]">
     ${header}
